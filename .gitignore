@@ -1,0 +1,7 @@
+# Misc
+.DS_Store
+
+# Complied Python Code
+*.pyc
+
+
