@@ -1,12 +1,10 @@
 class RDF_term(object):
 
-
     def __init__(self, **kwargs):
         if "@id" in kwargs:
-            return URI(kwargs['@id'], namespaces= kwargs['namespaces'])
+            return URI(kwargs['@id'], namespaces=kwargs['namespaces'])
         else:
             return Literal(kwargs)
-
 
     @property
     def value(self):
@@ -18,12 +16,14 @@ class RDF_term(object):
     def __repr__(self):
         return str(type(self)) + ": " + str(self)
 
+
 class URI(RDF_term):
 
     def __init__(self, uri, **kwargs):
         if 'namespaces' in kwargs:
             if not ("http://" in uri or "https://" in uri):
-                uri = kwargs['namespaces'][uri.split(":")[0]] + uri.split(":")[1]
+                uri = kwargs['namespaces'][uri.split(
+                    ":")[0]] + uri.split(":")[1]
         self._URI = uri
 
     @property
@@ -32,7 +32,6 @@ class URI(RDF_term):
 
     def __str__(self):
         return str(self._URI)
-
 
 
 class Literal(RDF_term):
@@ -57,6 +56,7 @@ class Literal(RDF_term):
     def __str__(self):
         return str(self.value) + " " + str(self.type)
 
+
 class Variable(RDF_term):
 
     def __init__(self, value):
@@ -69,9 +69,10 @@ class Variable(RDF_term):
     def __str__(self):
         return str(self.value)
 
+
 class Triple(object):
 
-    def __init__(self, s, p ,o):
+    def __init__(self, s, p, o):
         self._subject = s
         self._predicate = p
         self._object = o
@@ -91,9 +92,12 @@ class Triple(object):
     @property
     def variables(self):
         vars = []
-        if type(self.subject) == Variable: vars.append(self.subject)
-        if type(self.object) == Variable: vars.append(self.object)
-        if type(self.predicate) == Variable: vars.append(self.predicate)
+        if type(self.subject) == Variable:
+            vars.append(self.subject)
+        if type(self.object) == Variable:
+            vars.append(self.object)
+        if type(self.predicate) == Variable:
+            vars.append(self.predicate)
         return vars
 
     @property
@@ -107,4 +111,12 @@ class Triple(object):
         yield self
 
     def __repr__(self):
-        return str(self.subject) + " " +  str(self.predicate) + " " + str(self.object) + "."
+        return str(self.subject) + " " + str(self.predicate) + " " + str(self.object) + "."
+
+    @property
+    def dict(self):
+        return {
+            'subject' : str(self.subject),
+            'predicate': str(self.predicate),
+            'object': str(self.object),
+        }

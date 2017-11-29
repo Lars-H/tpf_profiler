@@ -1,12 +1,12 @@
 import requests
+from requests import ConnectionError
 import datetime as dt
 import math
 from pprint import pprint
-from rdf_terms import *
+from core.rdf_terms import *
 import random
 
-import logging as log
-log.basicConfig(level=log.ERROR)
+import logging as logger
 
 
 def get_pattern(server, triple_pattern, **kwargs):
@@ -18,15 +18,19 @@ def get_pattern(server, triple_pattern, **kwargs):
     """
     page = kwargs.get("page", 1)
     payload = {
-        "subject" : triple_pattern.subject,
-        "predicate" : triple_pattern.predicate,
-        "object" : triple_pattern.object,
-        "page" : page
+        "subject": triple_pattern.subject,
+        "predicate": triple_pattern.predicate,
+        "object": triple_pattern.object,
+        "page": page
     }
-    log.info("Pattern: " + str(triple_pattern))
-    log.info("Page: " + str(page))
+    logger.info("Pattern: " + str(triple_pattern))
+    logger.info("Page: " + str(page))
     headers = kwargs.get('headers', {"accept": "application/json"})
-    result = requests.get(server, params=payload, headers=headers)
+    try:
+        result = requests.get(server, params=payload, headers=headers)
+    except ConnectionError as conn_error:
+        raise conn_error
+
     return result
 
 
@@ -62,20 +66,22 @@ def triples_from_graph(graph, namespaces):
             results.append(item)
     triples = []
     for result in results:
-        subject = URI(result['@id'], namespaces = namespaces)
+        subject = URI(result['@id'], namespaces=namespaces)
 
         for predicate in result.keys():
             if predicate == '@id':
                 continue
             elif predicate == '@type':
                 objs = result[predicate]
-                triples.extend(eval(subject, URI('rdf:type', namespaces=namespaces), objs, namespaces))
+                triples.extend(
+                    eval(subject, URI('rdf:type', namespaces=namespaces), objs, namespaces))
             else:
                 objs = result[predicate]
-                triples.extend(eval(subject, URI(predicate, namespaces=namespaces), objs, namespaces))
+                triples.extend(
+                    eval(subject, URI(predicate, namespaces=namespaces), objs, namespaces))
 
-    log.info("Number of triples: " + str(len(triples)))
-    #pprint(triples)
+    logger.info("Number of triples: " + str(len(triples)))
+    # pprint(triples)
     return triples
 
 
@@ -97,14 +103,15 @@ def eval(subject, predicate, object, namespaces):
         triples.append(triple)
     return triples
 
-def get_metadata(result):
-    """
 
-    :param result:
-    :return:
+def get_metadata(response):
     """
-    json_ld = result.json()
-    url = result.url#.split("&page")[0]
+    Retrieve the metadata from a given response
+    :param response: Response message
+    :return: Tuple (metadata , context)
+    """
+    json_ld = response.json()
+    url = response.url  # .split("&page")[0]
     graph = json_ld['@graph']
     context = json_ld['@context']
     if len(json_ld) == 2:
@@ -114,14 +121,15 @@ def get_metadata(result):
                 for elem in metadata:
                     if elem['@id'] == url:
                         metadata = elem
-                        log.info("Total results: " + str(metadata['hydra:totalItems']))
+                        logger.info("Total results: " +
+                                 str(metadata['hydra:totalItems']))
                         break
     else:
         metadata = graph
         for elem in metadata:
             if elem['@id'] == url:
                 metadata = elem
-                log.info("Total results: " + str(metadata['hydra:totalItems']))
+                logger.info("Total results: " + str(metadata['hydra:totalItems']))
                 break
     if not 'metadata' in locals():
         metadata = {}
@@ -143,33 +151,45 @@ def parse_metadata(metadata):
     """
 
     mapping = {
-        "itemsPerPage" : "hydra:itemsPerPage",
-        "triples" : "void:triples"
+        "itemsPerPage": "hydra:itemsPerPage",
+        "triples": "void:triples"
     }
     meta_dict = {}
     for key, value in mapping.items():
         meta_dict[key] = metadata[value]
 
-    meta_dict['pages'] = int(math.ceil(( meta_dict['triples'] / meta_dict['itemsPerPage'])))
+    meta_dict['pages'] = int(
+        math.ceil((meta_dict['triples'] / meta_dict['itemsPerPage'])))
     return meta_dict
 
 
+def sample_ldf(server, triple_pattern, id=1):
+    """
+    Samples a given pattern from the Linked Data Fragment and records
+    the metadata
+    :param server: Linked Data Fragment Server
+    :param triple_pattern: Pattern to be requested
+    :param id: Study ID
+    :return: Dict with the corresponding metadata
+    """
+    # Check for connection errors
+    try:
+        result = get_pattern(
+            server, triple_pattern=triple_pattern, headers={"accept": "application/json"})
+    except ConnectionError as conn_error:
+        raise conn_error
 
-def sample_ldf(server, triple_pattern):
-
-    headers = {
-        "accept" : "application/json"
-    }
-    result = get_pattern(server, triple_pattern=triple_pattern, headers = headers)
     sample = {}
     meta = get_metadata(result)
     meta_triples = triples_from_graph([meta[0]], meta[1])
+    sample['study_id'] = id
     sample['elapsed'] = str(result.elapsed)
     sample['timestamp'] = str(dt.datetime.now())
     sample['perPage'] = __predicate_value(meta_triples, "PerPage")
-    sample['totalItems'] = __predicate_value(meta_triples, "totalItems")
+    sample['total_items'] = __predicate_value(meta_triples, "totalItems")
     sample['vars'] = len(triple_pattern.variables)
     sample['pattern'] = str(triple_pattern)
+    sample['server'] = server
     return sample
 
 
@@ -179,10 +199,15 @@ def __predicate_value(triples, p):
         if p in str(triple.predicate):
             return str(triple.object.value)
 
+
 if __name__ == '__main__':
 
     file = "/Users/larsheling/Documents/Development/moosqe/queries/triple_patterns/tp1"
     server = "http://fragments.dbpedia.org/2014/en"
 
-    r = get_pattern(server, Triple(URI("rdf:type"), Variable("?p"), Variable("?o")))
-    pprint(r.json())
+    #r = get_pattern(server, Triple(URI("rdf:type"),
+    #                               Variable("?p"), Variable("?o")))
+    #pprint(r.json())
+
+    t = Triple(URI("rdf:type"), Variable("?p"), Variable("?o"))
+    print((t.dict))
