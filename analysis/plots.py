@@ -4,62 +4,45 @@ import numpy as np
 import seaborn as sns
 import numpy as np
 
-studies = [41014, 63952]
-results_path = "/Users/larsheling/Documents/Development/moosqe/data/results/"
+from import_data import prepare_dataset
 
-def categorize(p):
-    
-    p = str(p)
-    if "?s" in p:
-        if "?p" in p:
-            if "?o" in p:
-                return "?s ?p ?o"
-            else:
-                return "?s ?p bd"
-        else:
-            if "?o" in p:
-                return "?s bd ?o"
-            else:
-                return "?s bd db"
-    else:
-        if "?p" in p:
-            if "?o" in p:
-                return "bd ?p ?o"
-            else:
-                return "bd ?p bd"
-        else:
-            if "?o" in p:
-                return "bd bd ?o"
-            else:
-                return "bd bd bd"
-
-file = results_path + str(studies[1]) + ".csv"
-fig, ax = plt.subplots()
-df = pd.read_csv(file)
-
-#df['ms'] = df['elapsed'].microsecond
-df['ms'] = df['elapsed']
-df['ms'] = df['ms'].map( lambda x: int(str(x).split(".")[1]))
-
-df['category'] = df['pattern'].map(lambda x: categorize(x)).astype("category")
+df = prepare_dataset()
 
 gdf = df.groupby(['category'], axis=0).mean()
-#gdf = df
-#gdf.reset_index(drop=True, inplace=True)
 
 
 plt.figure(1)
 local = df[df['server'] == "http://aifb-ls3-vm8.aifb.kit.edu:3000/db"]
-sns.boxplot(local['category'], local['ms'])
+sns.boxplot(local['category'], local['ms'], hue=local['study_id'])
+#plt.yscale('log')
+plt.xticks(rotation=90)
+plt.ylabel("Runtime (ms)")
+
+categories = df['category'].unique()
+study_ids = local['study_id'].unique()
+stats = pd.DataFrame()
+for study_id in study_ids:
+    stat = local[(local['study_id'] == study_id)]['ms'].describe()
+    stats[str(study_id) + "_local"] = stat
+
+    
+    
+plt.figure(2)
+remote = df[df['server'] == "http://fragments.dbpedia.org/2015/en"]
+
+for study_id in study_ids:
+    stat = remote[(remote['study_id'] == study_id)]['ms'].describe()
+    stats[str(study_id) + "_remote"] = stat
+    
+sns.boxplot(remote['category'], remote['ms'], hue=remote['study_id'])
 plt.yscale('log')
 plt.xticks(rotation=90)
 
-plt.figure(2)
-remote = df[df['server'] == "http://fragments.dbpedia.org/2015/en"]
-sns.boxplot(remote['category'], remote['ms'])
+plt.figure(3)
+sns.boxplot(df['category'], df['ms'], hue=df['server'])
 plt.yscale('log')
-#plt.scatter(gdf.index, gdf['ms'], c=np.log( gdf['total_items']))
 plt.xticks(rotation=90)
+
 
 plt.show()
 

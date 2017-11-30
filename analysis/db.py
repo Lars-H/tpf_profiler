@@ -18,4 +18,4 @@ def export_study_results(study_id):
 
 
 if __name__ == '__main__':
-    export_study_results(52762)
+    export_study_results(69518)
