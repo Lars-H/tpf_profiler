@@ -122,14 +122,15 @@ def get_metadata(response):
                     if elem['@id'] == url:
                         metadata = elem
                         logger.info("Total results: " +
-                                 str(metadata['hydra:totalItems']))
+                                    str(metadata['hydra:totalItems']))
                         break
     else:
         metadata = graph
         for elem in metadata:
             if elem['@id'] == url:
                 metadata = elem
-                logger.info("Total results: " + str(metadata['hydra:totalItems']))
+                logger.info("Total results: " +
+                            str(metadata['hydra:totalItems']))
                 break
     if not 'metadata' in locals():
         metadata = {}
@@ -205,9 +206,9 @@ if __name__ == '__main__':
     file = "/Users/larsheling/Documents/Development/moosqe/queries/triple_patterns/tp1"
     server = "http://fragments.dbpedia.org/2014/en"
 
-    #r = get_pattern(server, Triple(URI("rdf:type"),
+    # r = get_pattern(server, Triple(URI("rdf:type"),
     #                               Variable("?p"), Variable("?o")))
-    #pprint(r.json())
+    # pprint(r.json())
 
     t = Triple(URI("rdf:type"), Variable("?p"), Variable("?o"))
     print((t.dict))

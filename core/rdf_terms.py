@@ -116,7 +116,7 @@ class Triple(object):
     @property
     def dict(self):
         return {
-            'subject' : str(self.subject),
+            'subject': str(self.subject),
             'predicate': str(self.predicate),
             'object': str(self.object),
         }

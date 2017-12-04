@@ -14,7 +14,8 @@ df = prepare_dataset()
 pattern = "?s http://dbpedia.org/ontology/wikiPageWikiLink ?o."
 #pattern = "?s ?p ?o."
 
-df = df[(df['pattern'] == pattern) & (df['study_id'] == 58906) & (df['server'] =="http://aifb-ls3-vm8.aifb.kit.edu:3000/db")]
+df = df[(df['pattern'] == pattern) & (df['study_id'] == 58906) & (
+    df['server'] == "http://aifb-ls3-vm8.aifb.kit.edu:3000/db")]
 
 plt.scatter(df['timestamp'], df['ms'])
 plt.show()

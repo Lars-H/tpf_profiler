@@ -5,9 +5,10 @@ import random
 import logging
 import datetime as dt
 import pandas as pd
-#logger.basicConfig(level=log.INFO)
+# logger.basicConfig(level=log.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 
 class Profiler(object):
 
@@ -50,13 +51,14 @@ class Profiler(object):
 
         try:
             for i in range(runs):
-                logger.info("Run: " + str(i+1) +  "/" + str(runs) )
+                logger.info("Run: " + str(i + 1) + "/" + str(runs))
                 t0 = dt.datetime.now()
                 res = Profiler.retrieve_patterns(
                     servers, patterns, shuffle=shuffle_patterns, repetitions=repetitions_per_pattern, id=study_id)
                 if not db_conn is None:
                     df = pd.DataFrame(res)
-                    df.to_sql("results", db_conn, if_exists="append", index=False)
+                    df.to_sql("results", db_conn,
+                              if_exists="append", index=False)
                 results.extend(res)
                 logger.info("Runtime: " + str(dt.datetime.now() - t0))
         except Exception as e:
@@ -70,9 +72,6 @@ class Profiler(object):
                 smpls.append(d)
             df = pd.DataFrame(smpls)
             df.to_sql("samples", db_conn, if_exists="append", index=False)
-
-
-
 
     @staticmethod
     def get_random_triples(server, total_samples, samples_per_page=1):
@@ -133,7 +132,8 @@ class Profiler(object):
                     except ConnectionError as conn_error:
                         # In Case of a Connection error
                         logger.error("Connection Error: " + str(conn_error))
-                        logger.info("Server {0}, pattern {1}".format(server, pattern))
+                        logger.info(
+                            "Server {0}, pattern {1}".format(server, pattern))
 
                         # Use Timeout and then try to continue
                         logger.info("Sleeping")
