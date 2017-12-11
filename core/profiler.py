@@ -1,11 +1,10 @@
-from requests import ConnectionError
 from time import sleep
 from core.linked_data_fragment import *
 import random
 import logging
 import datetime as dt
 import pandas as pd
-# logger.basicConfig(level=log.INFO)
+import urllib2, socket, urlparse
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -27,17 +26,20 @@ class Profiler(object):
         if not db_conn is None:
             kwargs.pop("db_conn")
 
-        study_id = hash(dt.datetime.now()) % 100000
+        # Get the servers ip addresses
+        data = urllib2.urlopen(server)
+        server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
 
-        # Save study
-        if not db_conn is None:
-            data = kwargs
-            data['timestamp'] = dt.datetime.now()
-            data['id'] = study_id
-            data['shuffle'] = shuffle_patterns
-            df = pd.DataFrame([kwargs])
-            df.to_sql("study", db_conn, if_exists="append", index=False)
-        results = []
+        # Get alternative server IP
+        alt_server_ip = None
+        if not alt_server is None:
+            data = urllib2.urlopen(alt_server)
+            alt_server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+
+        # Generate a study_id
+        study_id = int(str(hash(dt.datetime.now()))[1:9])
+        logger.info("Study ID: " + str(study_id))
+
 
         # If we have an alternative server with the identical data
         # We may add it for the pattern retrieval
@@ -47,8 +49,9 @@ class Profiler(object):
 
         samples = Profiler.get_random_triples(
             server, samples, samples_per_page)
+        logger.info("Samples generated from TPF: " + str(len(samples)))
         patterns = Profiler.generate_test_patterns(samples)
-
+        results = []
         try:
             for i in range(runs):
                 logger.info("Run: " + str(i + 1) + "/" + str(runs))
@@ -57,6 +60,7 @@ class Profiler(object):
                     servers, patterns, shuffle=shuffle_patterns, repetitions=repetitions_per_pattern, id=study_id)
                 if not db_conn is None:
                     df = pd.DataFrame(res)
+                    df['run'] = i
                     df.to_sql("results", db_conn,
                               if_exists="append", index=False)
                 results.extend(res)
@@ -64,6 +68,18 @@ class Profiler(object):
         except Exception as e:
             logger.exception(str(e))
 
+        # Save study
+        if not db_conn is None:
+            data = kwargs
+            data['timestamp'] = dt.datetime.now()
+            data['id'] = study_id
+            data['shuffle'] = shuffle_patterns
+            data['server_ip'] = str(server_ip)
+            data['alt_server_ip'] = str(alt_server_ip)
+            df = pd.DataFrame([kwargs])
+            df.to_sql("study", db_conn, if_exists="append", index=False)
+
+        # Save samples
         if not db_conn is None:
             smpls = []
             for sample in samples:
@@ -73,50 +89,57 @@ class Profiler(object):
             df = pd.DataFrame(smpls)
             df.to_sql("samples", db_conn, if_exists="append", index=False)
 
+
+
+
     @staticmethod
     def get_random_triples(server, total_samples, samples_per_page=1):
         assert total_samples >= samples_per_page
         spo = Triple(Variable("?s"), Variable("?p"), Variable("?o"))
         result = get_pattern(server, spo)
         metadata = get_parsed_metadata(result)
-        triples = []
+        triples = set()
 
-        # TODO: Variable number of samples based on the DB size
+        # TODO: Variable number of samples based on the LDF size
 
         while len(triples) < total_samples:
             page = random.randint(1, metadata['pages'])
             result = get_pattern(server, spo, page=page)
-            triples.extend(get_random_triples(result, samples_per_page))
+            triples.update(get_random_triples(result, samples_per_page))
         return triples
 
     @staticmethod
     def generate_test_patterns(triples):
-        triple_patterns = []
+        triple_patterns = set()
         for triple in triples:
-            triple_patterns.extend(triple)
-            triple_patterns.extend(
+            triple_patterns.add(triple)
+            triple_patterns.add(
                 Triple(triple.subject, triple.predicate, Variable("?o")))
-            triple_patterns.extend(
+            triple_patterns.add(
                 Triple(triple.subject, Variable("?p"), Variable("?o")))
-            triple_patterns.extend(
+            triple_patterns.add(
                 Triple(Variable("?s"), triple.predicate, Variable("?o")))
-            triple_patterns.extend(
+            triple_patterns.add(
                 Triple(Variable("?s"), triple.predicate, triple.object))
-            triple_patterns.extend(
+            triple_patterns.add(
                 Triple(Variable("?s"), Variable("?p"), triple.object))
-            triple_patterns.extend(
+            triple_patterns.add(
                 Triple(triple.subject, Variable("?p"), triple.object))
-            triple_patterns.extend(
-                Triple(triple.subject, Variable("?p"), triple.object))
-            triple_patterns.extend(
+
+        logger.info("Number of unique patterns: " + str(len(triple_patterns)))
+
+        triple_patterns = list(triple_patterns)
+        # For every pattern add one spo
+        for i in range(len(triples)):
+            triple_patterns.append(
                 Triple(Variable("?s"), Variable("?p"), Variable("?o")))
 
-        # pprint(triple_patterns)
         return triple_patterns
 
     @staticmethod
     def retrieve_patterns(servers, triple_patterns, shuffle=True, repetitions=1, id=1):
 
+        triple_patterns = list(triple_patterns)
         if not type(servers) is list:
             servers = [servers]
 
@@ -128,7 +151,7 @@ class Profiler(object):
                 for i in range(repetitions):
 
                     try:
-                        results.append(sample_ldf(server, pattern, id))
+                        results.append(sample_ldf(server, pattern, id, i))
                     except ConnectionError as conn_error:
                         # In Case of a Connection error
                         logger.error("Connection Error: " + str(conn_error))

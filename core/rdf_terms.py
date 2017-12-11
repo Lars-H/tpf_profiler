@@ -21,7 +21,7 @@ class URI(RDF_term):
 
     def __init__(self, uri, **kwargs):
         if 'namespaces' in kwargs:
-            if not ("http://" in uri or "https://" in uri):
+            if not ("http://" in uri or "https://" in uri or "urn" in uri):
                 uri = kwargs['namespaces'][uri.split(
                     ":")[0]] + uri.split(":")[1]
         self._URI = uri
@@ -112,6 +112,12 @@ class Triple(object):
 
     def __repr__(self):
         return str(self.subject) + " " + str(self.predicate) + " " + str(self.object) + "."
+
+    def __hash__(self):
+        return hash(self.__repr__())
+
+    def __eq__(self,other):
+        return self.__repr__() == other.__repr__()
 
     @property
     def dict(self):

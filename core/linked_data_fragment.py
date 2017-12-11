@@ -2,12 +2,11 @@ import requests
 from requests import ConnectionError
 import datetime as dt
 import math
-from pprint import pprint
 from core.rdf_terms import *
 import random
 
 import logging as logger
-
+logger.basicConfig(level=logger.ERROR)
 
 def get_pattern(server, triple_pattern, **kwargs):
     """
@@ -47,10 +46,10 @@ def get_random_triples(result, n, no_literals=True):
     triples = triples_from_graph(graph, namespaces)
     idx = [i for i in range(len(triples))]
     random.shuffle(idx)
-    random_triples = []
+    random_triples = set()
     for i in idx:
         if not triples[i].contains_literal and no_literals:
-            random_triples.append(triples[i])
+            random_triples.add(triples[i])
         if len(random_triples) == n:
             break
     return random_triples
@@ -97,7 +96,10 @@ def eval(subject, predicate, object, namespaces):
         triples.append(triple)
     elif type(object) == list:
         for obj in object:
-            triples.extend(eval(subject, predicate, obj, namespaces))
+            try:
+                triples.extend(eval(subject, predicate, obj, namespaces))
+            except KeyError as e:
+                logger.ERROR(str(e))
     else:
         triple = Triple(subject, predicate, Literal(**{"@value": object}))
         triples.append(triple)
@@ -164,7 +166,7 @@ def parse_metadata(metadata):
     return meta_dict
 
 
-def sample_ldf(server, triple_pattern, id=1):
+def sample_ldf(server, triple_pattern, id=1, repetition=0):
     """
     Samples a given pattern from the Linked Data Fragment and records
     the metadata
@@ -191,6 +193,10 @@ def sample_ldf(server, triple_pattern, id=1):
     sample['vars'] = len(triple_pattern.variables)
     sample['pattern'] = str(triple_pattern)
     sample['server'] = server
+    if repetition == 0:
+        sample['cached'] = False
+    else:
+        sample['cached'] = True
     return sample
 
 
@@ -205,10 +211,6 @@ if __name__ == '__main__':
 
     file = "/Users/larsheling/Documents/Development/moosqe/queries/triple_patterns/tp1"
     server = "http://fragments.dbpedia.org/2014/en"
-
-    # r = get_pattern(server, Triple(URI("rdf:type"),
-    #                               Variable("?p"), Variable("?o")))
-    # pprint(r.json())
 
     t = Triple(URI("rdf:type"), Variable("?p"), Variable("?o"))
     print((t.dict))

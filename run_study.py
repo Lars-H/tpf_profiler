@@ -2,81 +2,69 @@ from core.profiler import Profiler
 from sqlalchemy import create_engine
 import sys
 import argparse
+from optparse import OptionParser
 import logging
-#logging.basicConfig(level=logging.INFO, filename="study.log")
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+sources = {
+    "local" :
+        {
+            "dbpedia" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/db",
+            "wikidata": "http://aifb-ls3-vm8.aifb.kit.edu:3000/wikidata",
+            "geonames": "http://aifb-ls3-vm8.aifb.kit.edu:3000/geonames",
+            "yago": "http://aifb-ls3-vm8.aifb.kit.edu:3000/yago",
+            "dblp": "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp"
+        },
+    "remote" :
+        {
+            "dbpedia" : "http://fragments.dbpedia.org/2015/en",
+            "wikidata": "https://query.wikidata.org/bigdata/ldf",
+            "geonames": "http://data.linkeddatafragments.org/geonames",
+            "yago": None,
+            "dblp": "http://data.linkeddatafragments.org/dblp"
+        }
+}
 
 def get_options():
+    parser = OptionParser()
+    parser.add_option("-d", "--datasource", dest="datasource", type="string",
+                    help="Name of datasource", metavar="DATASORUCE")
+    parser.add_option("-s", "--samples",
+                     dest="samples", type="int",default=1,
+                      help="Number of samples")
+    parser.add_option("-r", "--runs",
+                     dest="runs", type="int",default=1,
+                      help="Number of runs per source")
+    parser.add_option("-c", "--cached",
+                     dest="caching", type="int",default=2,
+                      help="Number of repeated requests")
+    parser.add_option("-w", "--write",
+                     dest="write", type="int",default=0,
+                      help="Write to database")
 
-    parser = argparse.ArgumentParser(
-        description="Linked Data Fragment Profiler")
+    (options, args) = parser.parse_args()
+    return vars(options)
 
-    # Study arguments.
-    parser.add_argument("-s1", "--server1",
-                        help="URL of the triple pattern fragment server (required)")
-    parser.add_argument("-s2", "--server2",
-                        help="URL of an addtional triple pattern fragment server (optional)")
-    parser.add_argument("-t", "--total_samples",
-                        help="number of total samples",
-                        type = int,
-                        default = 1)
-    parser.add_argument("-r", "--runs",
-                        help="number of repeated experiments",
-                        type = int,
-                        default = 1)
-    parser.add_argument("-c", "--repetitions",
-                        help="Number of immediate repetitions",
-                        type = int,
-                        default = 1)
-    parser.add_argument("-p", "--per_page",
-                        help="SPARQL query (required, or -f)",
-                        type = int,
-                        default = 1)
-    args = parser.parse_args()
+def run_study(**kwargs):
 
-    # Handling mandatory arguments.
-    err = False
-    msg = []
-    if not args.server:
-        err = True
-        msg.append(
-            "error: no server specified. Use argument -s to specify the address of a server.")
+    remote = sources['remote'][kwargs['datasource']]
+    local =  sources['local'][kwargs['datasource']]
+    repetition = kwargs['caching']
+    if kwargs['write'] == 1:
+        engine = create_engine('mysql://lhe:112358@localhost/moosqe')
+    else:
+        engine = None
 
-    if not args.file and not args.query:
-        err = True
-        msg.append(
-            "error: no query specified. Use argument -f or -q to specify a query.")
-
-    if err:
-        parser.print_usage()
-        print "\n".join(msg)
-        sys.exit(1)
-
-    return args.server, args.file, args.query, args.eddies, args.timeout, args.results, args.policy
-
-
-def run_single_server(server):
-    engine = create_engine('mysql://lhe:112358@localhost/moosqe')
     logger.info("Start study")
-    Profiler.run_profiler(server=server, runs=50, total_samples=10, samples_per_page=1,
-                          repetitions=2, db_conn=engine)
-    logger.info("Study finished")
-
-
-def run_study():
-    engine = create_engine('mysql://lhe:112358@localhost/moosqe')
-    remote = "http://fragments.dbpedia.org/2015/en"
-    local = "http://aifb-ls3-vm8.aifb.kit.edu:3000/db"
-    repetition = 2
-    logger.info("Start study")
-    Profiler.run_profiler(server=local, alt_server=remote, runs=10, total_samples=100, samples_per_page=1,
+    Profiler.run_profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
                           repetitions=repetition, db_conn=engine)
     logger.info("Study finished")
 
 
 if __name__ == '__main__':
-    run_study()
-    # run_single_server("http://data.linkeddatafragments.org/geonames")
+    options = get_options()
+    logger.info(options)
+    run_study(**(options))
