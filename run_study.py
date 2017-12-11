@@ -59,8 +59,9 @@ def run_study(**kwargs):
         engine = None
 
     logger.info("Start study")
-    Profiler.run_profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
-                          repetitions=repetition, db_conn=engine)
+    p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
+                 repetitions=repetition, db_conn=engine)
+    p.run()
     logger.info("Study finished")
 
 

@@ -4,6 +4,7 @@ import datetime as dt
 import math
 from core.rdf_terms import *
 import random
+from pprint import pprint
 
 import logging as logger
 logger.basicConfig(level=logger.ERROR)
@@ -126,6 +127,10 @@ def get_metadata(response):
                         logger.info("Total results: " +
                                     str(metadata['hydra:totalItems']))
                         break
+
+            # For wikidata results
+
+
     else:
         metadata = graph
         for elem in metadata:
@@ -153,6 +158,7 @@ def parse_metadata(metadata):
     :return:
     """
 
+    pprint(metadata)
     mapping = {
         "itemsPerPage": "hydra:itemsPerPage",
         "triples": "void:triples"
@@ -178,7 +184,7 @@ def sample_ldf(server, triple_pattern, id=1, repetition=0):
     # Check for connection errors
     try:
         result = get_pattern(
-            server, triple_pattern=triple_pattern, headers={"accept": "application/json"})
+            server, triple_pattern=triple_pattern, headers={"accept": "application/ld+json"})
     except ConnectionError as conn_error:
         raise conn_error
 
