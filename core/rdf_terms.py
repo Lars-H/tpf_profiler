@@ -1,3 +1,17 @@
+# encoding: utf-8
+
+def to_utf8(text):
+    if isinstance(text, unicode):
+        # unicode to utf-8
+        return text.encode('utf-8')
+    try:
+        # maybe utf-8
+        return text.decode('utf-8').encode('utf-8')
+    except UnicodeError:
+        # gbk to utf-8
+        return text.decode('gbk').encode('utf-8')
+
+
 class RDF_term(object):
 
     def __init__(self, **kwargs):
@@ -21,9 +35,9 @@ class URI(RDF_term):
 
     def __init__(self, uri, **kwargs):
         if 'namespaces' in kwargs:
-            if not ("http://" in uri or "https://" in uri or "urn" in uri):
+            if not ("http://" in uri or "https://" in uri or "urn:" in uri):
                 uri = kwargs['namespaces'][uri.split(
-                    ":")[0]] + uri.split(":")[1]
+                    ":")[0]] +  ':'.join(uri.split(":")[1:])
         self._URI = uri
 
     @property
@@ -31,7 +45,7 @@ class URI(RDF_term):
         return self._URI
 
     def __str__(self):
-        return str(self._URI)
+        return self._URI
 
 
 class Literal(RDF_term):
@@ -111,7 +125,11 @@ class Triple(object):
         yield self
 
     def __repr__(self):
-        return str(self.subject) + " " + str(self.predicate) + " " + str(self.object) + "."
+        try:
+            return str(self.subject) + " " + str(self.predicate) + " " + str(self.object) + "."
+        except Exception as e:
+            raise e
+
 
     def __hash__(self):
         return hash(self.__repr__())

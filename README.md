@@ -1,4 +1,4 @@
-# MOOSQE - Repository
+# MOOSE - Repository
 
 Ideas on multi-objective optimization for federated SPARQL query engines.
 

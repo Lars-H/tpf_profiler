@@ -29,15 +29,14 @@ class Profiler(object):
             kwargs.pop("db_conn")
 
         # Get the servers ip addresses
-        #data = urllib2.urlopen(server)
-        #self.server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+        data = urllib2.urlopen(self.server)
+        self.server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
 
         # Get alternative server IP
         alt_server_ip = None
         if not self.alt_server is None:
-            pass
-            #data = urllib2.urlopen(alt_server)
-            #self.alt_server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+            data = urllib2.urlopen(self.alt_server)
+            self.alt_server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
 
         # Generate a study_id
         self.study_id = int(str(hash(dt.datetime.now()))[1:9])
@@ -46,9 +45,9 @@ class Profiler(object):
 
         # If we have an alternative server with the identical data
         # We may add it for the pattern retrieval
-        servers = [server]
+        self.servers = [self.server]
         if not self.alt_server is None:
-            servers.append(self.alt_server)
+            self.servers.append(self.alt_server)
 
 
 
@@ -102,15 +101,15 @@ class Profiler(object):
         assert self.samples >= self.samples_per_page
         spo = Triple(Variable("?s"), Variable("?p"), Variable("?o"))
         result = get_pattern(self.server, spo, headers=self.header)
-        pprint(result.json())
+        #pprint(result.json())
         metadata = get_parsed_metadata(result)
         triples = set()
 
         # TODO: Variable number of samples based on the LDF size
 
-        while len(triples) < self.total_samples:
+        while len(triples) < self.samples:
             page = random.randint(1, metadata['pages'])
-            result = get_pattern(server, spo, page=page, headers=self.header)
+            result = get_pattern(self.server, spo, page=page, headers=self.header)
             triples.update(get_random_triples(result, self.samples_per_page))
         return triples
 
@@ -121,14 +120,14 @@ class Profiler(object):
             servers = [self.servers]
 
         results = []
-        if self.shuffle:
+        if self.shuffle_patterns:
             random.shuffle(triple_patterns)
         for pattern in triple_patterns:
             for server in self.servers:
-                for i in range(self.repetitions):
+                for i in range(self.repetitions_per_pattern):
 
                     try:
-                        results.append(sample_ldf(server, pattern, self.study_id, i))
+                        results.append(sample_ldf(server, pattern, self.study_id, self.header))
                     except ConnectionError as conn_error:
                         # In Case of a Connection error
                         logger.error("Connection Error: " + str(conn_error))

@@ -50,7 +50,10 @@ def get_random_triples(result, n, no_literals=True):
     random_triples = set()
     for i in idx:
         if not triples[i].contains_literal and no_literals:
-            random_triples.add(triples[i])
+            try:
+                random_triples.add(triples[i])
+            except UnicodeEncodeError as e:
+                continue
         if len(random_triples) == n:
             break
     return random_triples
@@ -81,7 +84,6 @@ def triples_from_graph(graph, namespaces):
                     eval(subject, URI(predicate, namespaces=namespaces), objs, namespaces))
 
     logger.info("Number of triples: " + str(len(triples)))
-    # pprint(triples)
     return triples
 
 
@@ -101,6 +103,8 @@ def eval(subject, predicate, object, namespaces):
                 triples.extend(eval(subject, predicate, obj, namespaces))
             except KeyError as e:
                 logger.ERROR(str(e))
+            except UnicodeEncodeError as e:
+                break
     else:
         triple = Triple(subject, predicate, Literal(**{"@value": object}))
         triples.append(triple)
@@ -129,8 +133,9 @@ def get_metadata(response):
                         break
 
             # For wikidata results
-
-
+            #if subgraph['@id'] == response.url:
+            #    metadata = subgraph
+            #elif 'subset' in subgraph.keys() and  == response.url
     else:
         metadata = graph
         for elem in metadata:
@@ -148,19 +153,20 @@ def get_metadata(response):
 
 
 def get_parsed_metadata(result):
-    return parse_metadata(get_metadata(result)[0])
+    return parse_metadata(get_metadata(result))
 
 
-def parse_metadata(metadata):
+def parse_metadata(graph):
     """
     Parse the metadata into a dict
     :param metadata:
     :return:
     """
-
-    pprint(metadata)
+    metadata = graph[0]
+    context = graph[1]
+    #pprint(metadata)
     mapping = {
-        "itemsPerPage": "hydra:itemsPerPage",
+        "itemsPerPage": "hydra:itemsPerPage", # http://www.w3.org/ns/hydra/core#
         "triples": "void:triples"
     }
     meta_dict = {}
@@ -172,7 +178,7 @@ def parse_metadata(metadata):
     return meta_dict
 
 
-def sample_ldf(server, triple_pattern, id=1, repetition=0):
+def sample_ldf(server, triple_pattern, id=1, repetition=0, header={"accept": "application/json"}):
     """
     Samples a given pattern from the Linked Data Fragment and records
     the metadata
@@ -184,7 +190,7 @@ def sample_ldf(server, triple_pattern, id=1, repetition=0):
     # Check for connection errors
     try:
         result = get_pattern(
-            server, triple_pattern=triple_pattern, headers={"accept": "application/ld+json"})
+            server, triple_pattern=triple_pattern, headers=header)
     except ConnectionError as conn_error:
         raise conn_error
 
@@ -216,7 +222,14 @@ def __predicate_value(triples, p):
 if __name__ == '__main__':
 
     file = "/Users/larsheling/Documents/Development/moosqe/queries/triple_patterns/tp1"
-    server = "http://fragments.dbpedia.org/2014/en"
+    server = "http://fragments.dbpedia.org/2015/en"
 
-    t = Triple(URI("rdf:type"), Variable("?p"), Variable("?o"))
-    print((t.dict))
+    t = Triple(URI("dbpedia:Georgia_Turner"), Variable("?p"), Variable("?o"))
+    r = get_pattern(server, t)
+    data = r.json()
+    namespaces = data['@context']
+    graph = data['@graph']
+    triples = triples_from_graph(graph, namespaces)
+    pprint(triples)
+    #for result in res:
+    #    print(result)

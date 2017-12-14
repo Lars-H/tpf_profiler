@@ -1,11 +1,9 @@
 from core.profiler import Profiler
 from sqlalchemy import create_engine
-import sys
-import argparse
 from optparse import OptionParser
+from datetime import datetime
 import logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -58,8 +56,8 @@ def run_study(**kwargs):
     else:
         engine = None
 
-    logger.info("Start study")
-    p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
+    logger.info("Start study at " + str(datetime.now()))
+    p = Profiler(server=remote, alt_server=local, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
                  repetitions=repetition, db_conn=engine)
     p.run()
     logger.info("Study finished")
