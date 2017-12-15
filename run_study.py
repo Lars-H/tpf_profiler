@@ -14,7 +14,8 @@ sources = {
             "wikidata": "http://aifb-ls3-vm8.aifb.kit.edu:3000/wikidata",
             "geonames": "http://aifb-ls3-vm8.aifb.kit.edu:3000/geonames",
             "yago": "http://aifb-ls3-vm8.aifb.kit.edu:3000/yago",
-            "dblp": "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp"
+            "dblp": "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp",
+            "wiktionary" : "http://aifnb-ls3-vm8.aifb.kit.edu:3000/wiktionary"
         },
     "remote" :
         {
@@ -22,7 +23,8 @@ sources = {
             "wikidata": "https://query.wikidata.org/bigdata/ldf",
             "geonames": "http://data.linkeddatafragments.org/geonames",
             "yago": None,
-            "dblp": "http://data.linkeddatafragments.org/dblp"
+            "dblp": "http://data.linkeddatafragments.org/dblp",
+            "wiktionary" : "http://data.linkeddatafragments.org/wiktionary"
         }
 }
 
@@ -48,8 +50,8 @@ def get_options():
 
 def run_study(**kwargs):
 
-    remote = sources['remote'][kwargs['datasource']]
-    local =  sources['local'][kwargs['datasource']]
+    local = sources['remote'][kwargs['datasource']]
+    remote =  sources['local'][kwargs['datasource']]
     repetition = kwargs['caching']
     if kwargs['write'] == 1:
         engine = create_engine('mysql://lhe:112358@localhost/moosqe')
@@ -57,8 +59,10 @@ def run_study(**kwargs):
         engine = None
 
     logger.info("Start study at " + str(datetime.now()))
-    p = Profiler(server=remote, alt_server=local, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
-                 repetitions=repetition, db_conn=engine)
+    logger.info("Local: " + str(local))
+    logger.info("Remote: " + str(remote))
+    p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
+                 repetitions=repetition, db_conn=engine, header={"accept" : "application/ld+json"})
     p.run()
     logger.info("Study finished")
 

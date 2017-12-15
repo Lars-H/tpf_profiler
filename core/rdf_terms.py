@@ -34,10 +34,15 @@ class RDF_term(object):
 class URI(RDF_term):
 
     def __init__(self, uri, **kwargs):
-        if 'namespaces' in kwargs:
-            if not ("http://" in uri or "https://" in uri or "urn:" in uri):
-                uri = kwargs['namespaces'][uri.split(
-                    ":")[0]] +  ':'.join(uri.split(":")[1:])
+        try:
+            if 'namespaces' in kwargs:
+                if not ("http:/" in uri or "https:/" in uri
+                        or "urn:" in uri or "ftp:" in uri):
+                    uri = kwargs['namespaces'][uri.split(
+                        ":")[0]] +  ':'.join(uri.split(":")[1:])
+
+        except Exception as e:
+            print(str(e))
         self._URI = uri
 
     @property

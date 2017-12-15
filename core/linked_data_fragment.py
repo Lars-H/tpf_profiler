@@ -132,10 +132,13 @@ def get_metadata(response):
                                     str(metadata['hydra:totalItems']))
                         break
 
-            # For wikidata results
-            #if subgraph['@id'] == response.url:
-            #    metadata = subgraph
+            #For wikidata results
+            if subgraph['@id'] == response.url:
+                metadata = subgraph
             #elif 'subset' in subgraph.keys() and  == response.url
+
+
+
     else:
         metadata = graph
         for elem in metadata:
@@ -169,6 +172,11 @@ def parse_metadata(graph):
         "itemsPerPage": "hydra:itemsPerPage", # http://www.w3.org/ns/hydra/core#
         "triples": "void:triples"
     }
+    """mapping_wikidata = {
+        "itemsPerPage": "http://www.w3.org/ns/hydra/core#hydra:itemsPerPage",
+        "triples": "void:triples"
+    }"""
+    #mapping = mapping_wikidata
     meta_dict = {}
     for key, value in mapping.items():
         meta_dict[key] = metadata[value]
@@ -231,5 +239,3 @@ if __name__ == '__main__':
     graph = data['@graph']
     triples = triples_from_graph(graph, namespaces)
     pprint(triples)
-    #for result in res:
-    #    print(result)

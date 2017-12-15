@@ -18,7 +18,7 @@ class Profiler(object):
             raise AttributeError
         self.server = kwargs.get("server", None)
         self.runs = kwargs.get("runs", 1)
-        self.samples = kwargs.get("total_samples", 10)
+        self.num_of_samples = kwargs.get("total_samples", 10)
         self.samples_per_page = kwargs.get("samples_per_page", 1)
         self.repetitions_per_pattern = kwargs.get("repetitions", 1)
         self.shuffle_patterns = kwargs.get("shuffle", True)
@@ -29,14 +29,20 @@ class Profiler(object):
             kwargs.pop("db_conn")
 
         # Get the servers ip addresses
-        data = urllib2.urlopen(self.server)
-        self.server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+        try:
+            data = urllib2.urlopen(self.server)
+            self.server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+        except urllib2.HTTPError as e:
+            logger.error("Could not retrive IP address. \n{0}".format(str(e)))
 
         # Get alternative server IP
         alt_server_ip = None
         if not self.alt_server is None:
-            data = urllib2.urlopen(self.alt_server)
-            self.alt_server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+            try:
+                data = urllib2.urlopen(self.alt_server)
+                self.alt_server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+            except urllib2.HTTPError as e:
+                logger.error("Could not retrive IP address. \n{0}".format(str(e)))
 
         # Generate a study_id
         self.study_id = int(str(hash(dt.datetime.now()))[1:9])
@@ -54,7 +60,6 @@ class Profiler(object):
     def run(self):
 
         samples = self.get_random_triples()
-        logger.info("Samples generated from TPF: " + str(len(samples)))
         patterns = Profiler.generate_test_patterns(samples)
         results = []
         try:
@@ -98,7 +103,7 @@ class Profiler(object):
 
 
     def get_random_triples(self):
-        assert self.samples >= self.samples_per_page
+        assert self.num_of_samples >= self.samples_per_page
         spo = Triple(Variable("?s"), Variable("?p"), Variable("?o"))
         result = get_pattern(self.server, spo, headers=self.header)
         #pprint(result.json())
@@ -107,10 +112,12 @@ class Profiler(object):
 
         # TODO: Variable number of samples based on the LDF size
 
-        while len(triples) < self.samples:
+        while len(triples) < self.num_of_samples:
             page = random.randint(1, metadata['pages'])
             result = get_pattern(self.server, spo, page=page, headers=self.header)
             triples.update(get_random_triples(result, self.samples_per_page))
+
+        logger.info("Samples generated from TPF: " + str(len(triples)))
         return triples
 
     def retrieve_patterns(self, triple_patterns):
@@ -127,7 +134,7 @@ class Profiler(object):
                 for i in range(self.repetitions_per_pattern):
 
                     try:
-                        results.append(sample_ldf(server, pattern, self.study_id, self.header))
+                        results.append(sample_ldf(server, pattern, repetition=i, id=self.study_id, header=self.header))
                     except ConnectionError as conn_error:
                         # In Case of a Connection error
                         logger.error("Connection Error: " + str(conn_error))
@@ -139,6 +146,20 @@ class Profiler(object):
                         sleep(20)
                         logger.info("Continue")
         return results
+
+
+    def patterns_per_sample(self, n):
+        """
+        Function to get the number of unique triple patterns based
+        on a smaple of size n
+        :param n: Sample size
+        :return: number of unique triple patterns
+        """
+        self.num_of_samples = n
+        samples = self.get_random_triples()
+        patterns = Profiler.generate_test_patterns(samples)
+        return len(patterns)
+
 
     @staticmethod
     def generate_test_patterns(triples):
@@ -172,12 +193,16 @@ class Profiler(object):
 
 if __name__ == '__main__':
 
-    remote = "http://fragments.dbpedia.org/2014/en"
+    remote = "http://fragments.dbpedia.org/2015/en"
     local = "http://aifb-ls3-vm8.aifb.kit.edu:3000/db"
     db = "https://query.wikidata.org/bigdata/ldf"
     server = db
-    a = dt.datetime.now()
-    p = Profiler(server=server, samples=2,
+    p = Profiler(server=local, samples=2,
                           samples_per_page=2, alt_server=remote, log=True, header={"accept": "application/ld+json"})
-    p.run()
-    print(str(dt.datetime.now() - a))
+
+    for n in [100000]:
+        result = p.patterns_per_sample(n)
+        print("Samples: {0} -> Unique triple patterns: {1}".format(n, result))
+
+    #p.run()
+
