@@ -50,8 +50,8 @@ def get_options():
 
 def run_study(**kwargs):
 
-    local = sources['remote'][kwargs['datasource']]
-    remote =  sources['local'][kwargs['datasource']]
+    remote = sources['remote'][kwargs['datasource']]
+    local =  sources['local'][kwargs['datasource']]
     repetition = kwargs['caching']
     if kwargs['write'] == 1:
         engine = create_engine('mysql://lhe:112358@localhost/moosqe')

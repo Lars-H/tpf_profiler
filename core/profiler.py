@@ -27,7 +27,7 @@ class Profiler(object):
         self.header = kwargs.get("header", {"accept" : "application/json"} )
         if not self.db_conn is None:
             kwargs.pop("db_conn")
-
+            kwargs.pop("header")
         # Get the servers ip addresses
         try:
             data = urllib2.urlopen(self.server)
@@ -43,6 +43,7 @@ class Profiler(object):
                 self.alt_server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
             except urllib2.HTTPError as e:
                 logger.error("Could not retrive IP address. \n{0}".format(str(e)))
+                self.alt_server_ip = "1.1"
 
         # Generate a study_id
         self.study_id = int(str(hash(dt.datetime.now()))[1:9])

@@ -42,7 +42,8 @@ class URI(RDF_term):
                         ":")[0]] +  ':'.join(uri.split(":")[1:])
 
         except Exception as e:
-            print(str(e))
+            pass
+            #print(str(e))
         self._URI = uri
 
     @property

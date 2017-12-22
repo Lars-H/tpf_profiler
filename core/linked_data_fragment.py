@@ -34,7 +34,7 @@ def get_pattern(server, triple_pattern, **kwargs):
     return result
 
 
-def get_random_triples(result, n, no_literals=True):
+def get_random_triples(result, n ,no_literals=True):
     """
     Get n random triples from a result
     :param result: Requests response
@@ -121,6 +121,7 @@ def get_metadata(response):
     url = response.url  # .split("&page")[0]
     graph = json_ld['@graph']
     context = json_ld['@context']
+    metadata = {}
     if len(json_ld) == 2:
         for subgraph in graph:
             if "@graph" in subgraph.keys():
@@ -134,9 +135,9 @@ def get_metadata(response):
 
             #For wikidata results
             if subgraph['@id'] == response.url:
-                metadata = subgraph
-            #elif 'subset' in subgraph.keys() and  == response.url
-
+                metadata.update(subgraph)
+            elif 'subset' in subgraph.keys() and  subgraph['subset'] == response.url:
+                metadata.update(subgraph)
 
 
     else:
@@ -147,11 +148,6 @@ def get_metadata(response):
                 logger.info("Total results: " +
                             str(metadata['hydra:totalItems']))
                 break
-    if not 'metadata' in locals():
-        metadata = {}
-        metadata['@id'] = "none"
-        metadata['hydra:totalItems'] = 0
-
     return metadata, context
 
 
@@ -168,21 +164,23 @@ def parse_metadata(graph):
     metadata = graph[0]
     context = graph[1]
     #pprint(metadata)
-    mapping = {
-        "itemsPerPage": "hydra:itemsPerPage", # http://www.w3.org/ns/hydra/core#
+    mapping_regular = {
+        "itemsPerPage": ["hydra:itemsPerPage", "http://www.w3.org/ns/hydra/core#itemsPerPage"],# http://www.w3.org/ns/hydra/core#
+        "triples": ["void:triples", "void:triples"]
+    }
+    mapping_wikidata = {
+        "itemsPerPage": "http://www.w3.org/ns/hydra/core#itemsPerPage",
         "triples": "void:triples"
     }
-    """mapping_wikidata = {
-        "itemsPerPage": "http://www.w3.org/ns/hydra/core#hydra:itemsPerPage",
-        "triples": "void:triples"
-    }"""
-    #mapping = mapping_wikidata
     meta_dict = {}
-    for key, value in mapping.items():
-        meta_dict[key] = metadata[value]
+    for key, value in mapping_regular.items():
+        if value[0] not in metadata.keys():
+            meta_dict[key] = metadata[value[1]]
+        else:
+            meta_dict[key] = metadata[value[0]]
 
     meta_dict['pages'] = int(
-        math.ceil((meta_dict['triples'] / meta_dict['itemsPerPage'])))
+        math.ceil((int(meta_dict['triples']) / int(meta_dict['itemsPerPage']))))
     return meta_dict
 
 
