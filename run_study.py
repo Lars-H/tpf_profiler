@@ -11,6 +11,7 @@ sources = {
     "local" :
         {
             "dbpedia" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/db",
+            "db2014" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/db",
             "wikidata": "http://aifb-ls3-vm8.aifb.kit.edu:3000/wikidata",
             "geonames": "http://aifb-ls3-vm8.aifb.kit.edu:3000/geonames",
             "yago": "http://aifb-ls3-vm8.aifb.kit.edu:3000/yago",
@@ -20,6 +21,7 @@ sources = {
     "remote" :
         {
             "dbpedia" : "http://fragments.dbpedia.org/2015/en",
+            "db2014" : "http://data.linkeddatafragments.org/dbpedia2014",
             "wikidata": "https://query.wikidata.org/bigdata/ldf",
             "geonames": "http://data.linkeddatafragments.org/geonames",
             "yago": None,

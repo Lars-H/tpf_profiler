@@ -71,8 +71,7 @@ class Profiler(object):
                 if not self.db_conn is None:
                     df = pd.DataFrame(res)
                     df['run'] = i
-                    df.to_sql("results", self.db_conn,
-                              if_exists="append", index=False)
+                    self.save_results(df)
                 results.extend(res)
                 logger.info("Runtime: " + str(dt.datetime.now() - t0))
         except Exception as e:
@@ -80,6 +79,12 @@ class Profiler(object):
 
         if not self.db_conn is None:
             self.save_run(samples)
+
+    def save_results(self, df):
+
+        df.to_sql("results", self.db_conn,
+                  if_exists="append", index=False, chunksize=100)
+
 
 
     def save_run(self, samples):
@@ -125,7 +130,7 @@ class Profiler(object):
 
         triple_patterns = list(triple_patterns)
         if not type(self.servers) is list:
-            servers = [self.servers]
+            self.servers = [self.servers]
 
         results = []
         if self.shuffle_patterns:
