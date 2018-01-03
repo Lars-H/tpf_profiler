@@ -112,7 +112,6 @@ class Profiler(object):
         assert self.num_of_samples >= self.samples_per_page
         spo = Triple(Variable("?s"), Variable("?p"), Variable("?o"))
         result = get_pattern(self.server, spo, headers=self.header)
-        #pprint(result.json())
         metadata = get_parsed_metadata(result)
         triples = set()
 
@@ -199,12 +198,12 @@ class Profiler(object):
 
 if __name__ == '__main__':
 
-    remote = "http://fragments.dbpedia.org/2015/en"
-    local = "http://aifb-ls3-vm8.aifb.kit.edu:3000/db"
+    remote = "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp"
+    local = "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp"
     db = "https://query.wikidata.org/bigdata/ldf"
     server = db
     p = Profiler(server=local, samples=2,
-                          samples_per_page=2, alt_server=remote, log=True, header={"accept": "application/ld+json"})
+                          samples_per_page=2, log=True, header={"accept": "application/ld+json"})
 
     for n in [100000]:
         result = p.patterns_per_sample(n)

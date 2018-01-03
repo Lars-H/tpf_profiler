@@ -16,7 +16,8 @@ sources = {
             "geonames": "http://aifb-ls3-vm8.aifb.kit.edu:3000/geonames",
             "yago": "http://aifb-ls3-vm8.aifb.kit.edu:3000/yago",
             "dblp": "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp",
-            "wiktionary" : "http://aifnb-ls3-vm8.aifb.kit.edu:3000/wiktionary"
+            "wiktionary" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/wiktionary",
+            "lov" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/lov"
         },
     "remote" :
         {
@@ -26,7 +27,8 @@ sources = {
             "geonames": "http://data.linkeddatafragments.org/geonames",
             "yago": None,
             "dblp": "http://data.linkeddatafragments.org/dblp",
-            "wiktionary" : "http://data.linkeddatafragments.org/wiktionary"
+            "wiktionary" : "http://data.linkeddatafragments.org/wiktionary",
+            "lov" : "http://data.linkeddatafragments.org/lov",
         }
 }
 

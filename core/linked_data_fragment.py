@@ -93,10 +93,15 @@ def eval(subject, predicate, object, namespaces):
     if type(object) == dict:
         if '@id' in object.keys():
             obj = URI(object['@id'], namespaces=namespaces)
+            triple = Triple(subject, predicate, obj)
+            triples.append(triple)
         elif '@value' in object.keys():
             obj = Literal(**object)
-        triple = Triple(subject, predicate, obj)
-        triples.append(triple)
+            triple = Triple(subject, predicate, obj)
+            triples.append(triple)
+        elif '@list' in object.keys():
+            if len(object['@list']) > 0:
+                eval(subject, predicate, object['@list'], namespaces)
     elif type(object) == list:
         for obj in object:
             try:
