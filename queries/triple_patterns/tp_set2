@@ -1,7 +1,0 @@
-<http://dbpedia.org/resource/Barack_Obama> <http://dbpedia.org/ontology/party> ?party .
-?president <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/President> .
-?president <http://dbpedia.org/ontology/nationality> <http://dbpedia.org/resource/United_States> .
-?president <http://dbpedia.org/ontology/party> ?party .
-?director <http://dbpedia.org/ontology/nationality> <http://dbpedia.org/resource/Italy> .
-?film <http://dbpedia.org/ontology/director> ?director .
-?drug <http://dbpedia.org/ontology/Drug/meltingPoint> ?melt .
