@@ -23,13 +23,7 @@ def get_pattern(server, triple_pattern, **kwargs):
         "object": str(triple_pattern.object),
         "page": page
     }
-    if server == "http://data.linkeddatafragments.org/lov":
-        if "genid:" in payload['subject']:
-            payload['subject'] = "http://data.linkeddatafragments.org/.well-known/genid/" + payload['subject'].split(":")[1]
-        if "genid:" in payload['object']:
-            payload['object'] = "http://data.linkeddatafragments.org/.well-known/genid/" + payload['object'].split(":")[1]
-
-
+    
     logger.info("Pattern: " + str(triple_pattern))
     logger.info("Page: " + str(page))
     headers = kwargs.get('headers', {"accept": "application/json"})
