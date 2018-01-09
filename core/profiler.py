@@ -1,10 +1,12 @@
 from time import sleep
-from core.linked_data_fragment import *
+from core.tpf_interface import *
 import random
 import logging
 import datetime as dt
 import pandas as pd
-import urllib2, socket, urlparse
+import urllib2
+import socket
+import urlparse
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -12,7 +14,10 @@ logger.setLevel(logging.INFO)
 class Profiler(object):
 
     def __init__(self, **kwargs):
-
+        """
+        Initialize the profiler
+        :param kwargs:
+        """
         self.kwargs = kwargs
         if "server" not in kwargs.keys():
             raise AttributeError
@@ -25,35 +30,37 @@ class Profiler(object):
         self.alt_server = kwargs.get("alt_server", None)
         self.db_conn = kwargs.get("db_conn", None)
         self.save = kwargs.get("save", False)
-        self.header = kwargs.get("header", {"accept" : "application/json"} )
+        self.header = kwargs.get("header", {"accept": "application/json"})
         self.pages = kwargs.get("pages", None)
         # Remove kwargs not to be saved in the results
         if not self.db_conn is None:
             kwargs.pop("db_conn")
             kwargs.pop("header")
             kwargs.pop("save")
-            kwargs.pop("pages")
+            if "pages" in kwargs.keys():
+                kwargs.pop("pages")
         # Get the servers ip addresses
         try:
             data = urllib2.urlopen(self.server)
-            self.server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+            self.server_ip = socket.gethostbyname(
+                urlparse.urlparse(data.geturl()).hostname)
         except urllib2.HTTPError as e:
             logger.error("Could not retrive IP address. \n{0}".format(str(e)))
 
         # Get alternative server IP
-        alt_server_ip = None
         if not self.alt_server is None:
             try:
                 data = urllib2.urlopen(self.alt_server)
-                self.alt_server_ip = socket.gethostbyname(urlparse.urlparse(data.geturl()).hostname)
+                self.alt_server_ip = socket.gethostbyname(
+                    urlparse.urlparse(data.geturl()).hostname)
             except urllib2.HTTPError as e:
-                logger.error("Could not retrive IP address. \n{0}".format(str(e)))
+                logger.error(
+                    "Could not retrive IP address. \n{0}".format(str(e)))
                 self.alt_server_ip = "1.1"
 
         # Generate a study_id
         self.study_id = int(str(hash(dt.datetime.now()))[1:9])
         logger.info("Study ID: " + str(self.study_id))
-
 
         # If we have an alternative server with the identical data
         # We may add it for the pattern retrieval
@@ -61,9 +68,11 @@ class Profiler(object):
         if not self.alt_server is None:
             self.servers.append(self.alt_server)
 
-
-
     def run(self):
+        """
+        Run the profiler
+        :return:
+        """
 
         samples = self.get_random_triples()
         patterns = Profiler.generate_test_patterns(samples)
@@ -84,11 +93,8 @@ class Profiler(object):
         except Exception as e:
             logger.exception(str(e))
 
-
-
         if not self.db_conn is None:
             self.save_run(samples)
-
 
     def save_results(self, df):
         """
@@ -102,11 +108,15 @@ class Profiler(object):
             logger.info("Results saved to database: {0}".format(self.db_conn))
         else:
             filename = "{0}.csv".format(self.study_id)
-            df.to_csv(filename, mode='a', header=(df['run'].unique()[0]==0))
+            df.to_csv(filename, mode='a', header=(df['run'].unique()[0] == 0))
             logger.info("Results saved to file: {0}".format(filename))
 
-
     def save_run(self, samples):
+        """
+        Saves Profiler metadata (samples) to DB
+        :param samples: Samples of the study
+        :return:
+        """
         # Save study
         data = self.kwargs
         data['timestamp'] = dt.datetime.now()
@@ -126,26 +136,32 @@ class Profiler(object):
         df = pd.DataFrame(smpls)
         df.to_sql("samples", self.db_conn, if_exists="append", index=False)
 
-
     def get_random_triples(self):
+        """
+        Retrieves a random list of triples from the TPF
+        :return: List of Triples
+        """
         assert self.num_of_samples >= self.samples_per_page
         spo = Triple(Variable("?s"), Variable("?p"), Variable("?o"))
         result = get_pattern(self.server, spo, headers=self.header)
         metadata = get_parsed_metadata(result)
         triples = set()
 
-        # TODO: Variable number of samples based on the LDF size
-
         while len(triples) < self.num_of_samples:
             page = random.randint(1, metadata['pages'])
-            result = get_pattern(self.server, spo, page=page, headers=self.header)
+            result = get_pattern(
+                self.server, spo, page=page, headers=self.header)
             triples.update(get_random_triples(result, self.samples_per_page))
 
         logger.info("Samples generated from TPF: " + str(len(triples)))
         return triples
 
     def retrieve_patterns(self, triple_patterns):
-
+        """
+        Requests a set of triple pattern and records metadata
+        :param triple_patterns: Triple Patterns to be requested
+        :return: Results in form of metadata
+        """
         triple_patterns = list(triple_patterns)
         if not type(self.servers) is list:
             self.servers = [self.servers]
@@ -159,9 +175,11 @@ class Profiler(object):
 
                     try:
                         if self.pages is None:
-                            results.append(sample_ldf(server, pattern, repetition=i, id=self.study_id, header=self.header))
+                            results.append(sample_page(
+                                server, pattern, repetition=i, id=self.study_id, header=self.header))
                         else:
-                            results.extend(sample_pages(server,pattern, repetition=i, id=self.study_id, header=self.header, page_range=self.pages))
+                            results.extend(sample_pages(
+                                server, pattern, repetition=i, id=self.study_id, header=self.header, page_range=self.pages))
                     except ConnectionError as conn_error:
                         # In Case of a Connection error
                         logger.error("Connection Error: " + str(conn_error))
@@ -173,7 +191,6 @@ class Profiler(object):
                         sleep(20)
                         logger.info("Continue")
         return results
-
 
     def patterns_per_sample(self, n):
         """
@@ -187,9 +204,13 @@ class Profiler(object):
         patterns = Profiler.generate_test_patterns(samples)
         return len(patterns)
 
-
     @staticmethod
     def generate_test_patterns(triples):
+        """
+        Generates a list of triple patterns from a list of triples
+        :param triples: Triples
+        :return: List of triple patterns
+        """
         triple_patterns = set()
         for triple in triples:
             triple_patterns.add(triple)

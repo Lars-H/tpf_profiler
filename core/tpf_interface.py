@@ -9,11 +9,12 @@ from pprint import pprint
 import logging as logger
 logger.basicConfig(level=logger.ERROR)
 
+
 def get_pattern(server, triple_pattern, **kwargs):
     """
     Contact a LDF to get TPF
     :param server: Endpoint URL
-    :param kwargs: Payload and Header
+    :param kwargs: Payload (Subject, predicate, object), Header, Pages
     :return: requests response
     """
     page = kwargs.get("page", 1)
@@ -35,7 +36,7 @@ def get_pattern(server, triple_pattern, **kwargs):
     return result
 
 
-def get_random_triples(result, n ,no_literals=True):
+def get_random_triples(result, n, no_literals=True):
     """
     Get n random triples from a result
     :param result: Requests response
@@ -61,7 +62,12 @@ def get_random_triples(result, n ,no_literals=True):
 
 
 def triples_from_graph(graph, namespaces):
-
+    """
+    Retrieve all Triples from a JSON-LD response
+    :param graph: JSON-LD dict
+    :param namespaces: Namesapces
+    :return: List of Triple
+    """
     results = []
     for item in graph:
         if "@graph" in item.keys():
@@ -89,7 +95,14 @@ def triples_from_graph(graph, namespaces):
 
 
 def eval(subject, predicate, object, namespaces):
-
+    """
+    Function to recursively evaluate triples in a JSON-LD dict
+    :param subject: Subject
+    :param predicate: Predicate
+    :param object: Object
+    :param namespaces: Namespace
+    :return: List of Triple
+    """
     triples = []
     if type(object) == dict:
         if '@id' in object.keys():
@@ -119,8 +132,8 @@ def eval(subject, predicate, object, namespaces):
 
 def get_metadata(response):
     """
-    Retrieve the metadata from a given response
-    :param response: Response message
+    Retrieve the metadata and the context from a given JSON-LD response
+    :param response: Response object
     :return: Tuple (metadata , context)
     """
     json_ld = response.json()
@@ -139,12 +152,11 @@ def get_metadata(response):
                                     str(metadata['hydra:totalItems']))
                         break
 
-            #For wikidata results
+            # For wikidata results
             if subgraph['@id'] == response.url:
                 metadata.update(subgraph)
-            elif 'subset' in subgraph.keys() and  subgraph['subset'] == response.url:
+            elif 'subset' in subgraph.keys() and subgraph['subset'] == response.url:
                 metadata.update(subgraph)
-
 
     else:
         metadata = graph
@@ -164,14 +176,14 @@ def get_parsed_metadata(result):
 def parse_metadata(graph):
     """
     Parse the metadata into a dict
-    :param metadata:
-    :return:
+    :param graph: Graph structured metadata
+    :return: Metadat as dict
     """
     metadata = graph[0]
     context = graph[1]
-    #pprint(metadata)
     mapping_regular = {
-        "itemsPerPage": ["hydra:itemsPerPage", "http://www.w3.org/ns/hydra/core#itemsPerPage"],# http://www.w3.org/ns/hydra/core#
+        # http://www.w3.org/ns/hydra/core#
+        "itemsPerPage": ["hydra:itemsPerPage", "http://www.w3.org/ns/hydra/core#itemsPerPage"],
         "triples": ["void:triples", "void:triples"]
     }
     mapping_wikidata = {
@@ -190,7 +202,7 @@ def parse_metadata(graph):
     return meta_dict
 
 
-def sample_ldf(server, triple_pattern, id=1, repetition=0, header={"accept": "application/json"}):
+def sample_page(server, triple_pattern, id=1, repetition=0, header={"accept": "application/json"}):
     """
     Samples a given pattern from the Linked Data Fragment and records
     the metadata
@@ -202,11 +214,9 @@ def sample_ldf(server, triple_pattern, id=1, repetition=0, header={"accept": "ap
     # Check for connection errors
     try:
         result = get_pattern(
-                server, triple_pattern=triple_pattern, headers=header)
+            server, triple_pattern=triple_pattern, headers=header)
     except ConnectionError as conn_error:
         raise conn_error
-
-
 
     sample = {}
     meta = get_metadata(result)
@@ -229,7 +239,8 @@ def sample_ldf(server, triple_pattern, id=1, repetition=0, header={"accept": "ap
         sample['cached'] = True
     return sample
 
-def sample_pages(server, triple_pattern, id=1, repetition=0, page_range=[1,1], header={"accept": "application/json"}):
+
+def sample_pages(server, triple_pattern, id=1, repetition=0, page_range=[1, 1], header={"accept": "application/json"}):
     """
     Samples a given pattern from the Linked Data Fragment for a range of pages and records
     the metadata
@@ -241,10 +252,9 @@ def sample_pages(server, triple_pattern, id=1, repetition=0, page_range=[1,1], h
     # Check for connection errors
     try:
         result = get_pattern(
-                server, triple_pattern=triple_pattern, headers=header)
+            server, triple_pattern=triple_pattern, headers=header)
     except ConnectionError as conn_error:
         raise conn_error
-
 
     samples = []
     meta = get_metadata(result)
@@ -256,9 +266,10 @@ def sample_pages(server, triple_pattern, id=1, repetition=0, page_range=[1,1], h
     # Set pagination bounds
     lower_bnd = page_range[0]
     upper_bnd = min(pages, page_range[1])
-    if upper_bnd == -1: upper_bnd = pages
+    if upper_bnd == -1:
+        upper_bnd = pages
     assert lower_bnd <= upper_bnd
-    for page in range(lower_bnd, upper_bnd+1,1):
+    for page in range(lower_bnd, upper_bnd + 1, 1):
         sample = {}
         try:
             result = get_pattern(
@@ -277,13 +288,15 @@ def sample_pages(server, triple_pattern, id=1, repetition=0, page_range=[1,1], h
         sample['pattern'] = str(triple_pattern)
         sample['server'] = server
         sample['page'] = page
-        sample['relative_page_change'] = float((p1.microseconds-elapsed.microseconds)) / float(p1.microseconds)
+        sample['relative_page_change'] = float(
+            (p1.microseconds - elapsed.microseconds)) / float(p1.microseconds)
         if repetition == 0:
             sample['cached'] = False
         else:
             sample['cached'] = True
         samples.append(sample)
     return samples
+
 
 def __predicate_value(triples, p):
 

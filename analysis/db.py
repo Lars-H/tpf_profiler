@@ -5,6 +5,7 @@ import sys
 
 engine = create_engine('mysql://lhe:112358@localhost/moosqe')
 
+
 def export_study_results(study_ids):
 
     for study_id in study_ids:
@@ -29,6 +30,7 @@ def get_study_id(date):
     print(query)
     df = pd.read_sql_query(str(query), engine)
     return list(df.id)
+
 
 if __name__ == '__main__':
     #ids = get_study_id("2017-12-08 00:00:00")

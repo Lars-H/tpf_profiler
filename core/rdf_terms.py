@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+
 def to_utf8(text):
     if isinstance(text, unicode):
         # unicode to utf-8
@@ -39,11 +40,11 @@ class URI(RDF_term):
                 if not ("http:/" in uri or "https:/" in uri
                         or "urn:" in uri or "ftp:" in uri):
                     uri = kwargs['namespaces'][uri.split(
-                        ":")[0]] +  ':'.join(uri.split(":")[1:])
+                        ":")[0]] + ':'.join(uri.split(":")[1:])
 
         except Exception as e:
             pass
-            #print(str(e))
+            # print(str(e))
         self._URI = uri
 
     @property
@@ -136,11 +137,10 @@ class Triple(object):
         except Exception as e:
             raise e
 
-
     def __hash__(self):
         return hash(self.__repr__())
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         return self.__repr__() == other.__repr__()
 
     @property
