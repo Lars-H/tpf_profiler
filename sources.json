@@ -1,0 +1,14 @@
+{
+  "local": {
+    "dbpedia": "http://aifb-ls3-vm8.aifb.kit.edu:3000/db",
+    "geonames": "http://aifb-ls3-vm8.aifb.kit.edu:3000/geonames",
+    "dblp": "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp",
+    "wiktionary": "http://aifb-ls3-vm8.aifb.kit.edu:3000/wiktionary"
+  },
+  "remote": {
+    "dbpedia": "http://data.linkeddatafragments.org/dbpedia2014",
+    "geonames": "http://data.linkeddatafragments.org/geonames",
+    "dblp": "http://data.linkeddatafragments.org/dblp",
+    "wiktionary": "http://data.linkeddatafragments.org/wiktionary"
+  }
+}

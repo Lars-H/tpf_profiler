@@ -2,30 +2,15 @@ from core.profiler import Profiler
 from sqlalchemy import create_engine
 from optparse import OptionParser
 from datetime import datetime
+import json
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-sources = {
-    "local":
-        {
-            # Add address for the TPFs controlled environment
-            "dbpedia": "http://aifb-ls3-vm8.aifb.kit.edu:3000/db",
-            "geonames": "http://aifb-ls3-vm8.aifb.kit.edu:3000/geonames",
-            "dblp": "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp",
-            "wiktionary": "http://aifb-ls3-vm8.aifb.kit.edu:3000/wiktionary"
-        },
-    "remote":
-        {
-            # Addresses for the real-world TPFs
-            "dbpedia": "http://data.linkeddatafragments.org/dbpedia2014",
-            "geonames": "http://data.linkeddatafragments.org/geonames",
-            "dblp": "http://data.linkeddatafragments.org/dblp",
-            "wiktionary": "http://data.linkeddatafragments.org/wiktionary"
-        }
-}
-
+# Load sources
+with open('sources.json') as json_data:
+    sources = json.load(json_data)
 
 def get_options():
     """
@@ -34,7 +19,9 @@ def get_options():
     """
     parser = OptionParser()
     parser.add_option("-d", "--datasource", dest="datasource", type="string",
-                      help="Name of datasource. \n Available: {0}".format(sources['local'].keys()), metavar="DATASORUCE")
+                      help="Name of datasource. \n Available: {0}".format(sources['local'].keys()))
+    parser.add_option("--url", dest="url", type="string",
+                      help="URL for the Triple Pattern Fragment", default=None)
     parser.add_option("-s", "--samples",
                       dest="samples", type="int", default=1,
                       help="Number of samples")
@@ -62,27 +49,41 @@ def run_study(**kwargs):
     :param kwargs: Profiler options
     :return: None
     """
-    db_connection_str = kwargs['db_conn_str']
-    print(db_connection_str)
-    remote = sources['remote'][kwargs['datasource']]
-    local = sources['local'][kwargs['datasource']]
+    if kwargs['url'] is None:
+        remote = sources['remote'][kwargs['datasource']]
+        local = sources['local'][kwargs['datasource']]
+    else:
+        local = kwargs['url']
+        remote = None
     repetition = kwargs['caching']
+
+    # Setup Database access
+    engine = None
     if kwargs['write'] == 1:
+        db_connection_str = kwargs['db_conn_str']
         if not db_connection_str is None:
             engine = create_engine(db_connection_str)
-        else:
-            engine = None
 
     logger.info("Start study at " + str(datetime.now()))
     logger.info("Local: " + str(local))
     logger.info("Remote: " + str(remote))
-    p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
+
+    # Setup the profiler
+    try:
+        p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
                  repetitions=repetition, db_conn=engine, header={"accept": "application/ld+json"}, save=kwargs['write'])
-    p.run()
+    except Exception as e:
+        logger.error("Could not initalize the Profiler: \n{0}".format(e))
+
+    # Run the Profiler
+    try:
+        p.run()
+    except Exception as e:
+        logger.error("An error has occured during the execution of the Profiler: \n {0}".format(e))
     logger.info("Study finished")
 
 
 if __name__ == '__main__':
     options = get_options()
-    logger.info(options)
+    logger.info("Options: {0}".format(options))
     run_study(**(options))
