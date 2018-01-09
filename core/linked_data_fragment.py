@@ -23,7 +23,7 @@ def get_pattern(server, triple_pattern, **kwargs):
         "object": str(triple_pattern.object),
         "page": page
     }
-    
+
     logger.info("Pattern: " + str(triple_pattern))
     logger.info("Page: " + str(page))
     headers = kwargs.get('headers', {"accept": "application/json"})
@@ -206,40 +206,87 @@ def sample_ldf(server, triple_pattern, id=1, repetition=0, header={"accept": "ap
     except ConnectionError as conn_error:
         raise conn_error
 
+
+
     sample = {}
     meta = get_metadata(result)
     meta_triples = triples_from_graph([meta[0]], meta[1])
+    total_items = __predicate_value(meta_triples, "totalItems")
+    per_page = __predicate_value(meta_triples, "PerPage")
+    pages = int(math.ceil(int(total_items) / int(per_page)))
     sample['study_id'] = id
     sample['elapsed'] = str(result.elapsed)
     sample['timestamp'] = str(dt.datetime.now())
-    sample['perPage'] = __predicate_value(meta_triples, "PerPage")
-    sample['total_items'] = __predicate_value(meta_triples, "totalItems")
+    sample['perPage'] = per_page
+    sample['total_items'] = total_items
     sample['vars'] = len(triple_pattern.variables)
     sample['pattern'] = str(triple_pattern)
     sample['server'] = server
+    sample['page'] = 1
     if repetition == 0:
         sample['cached'] = False
     else:
         sample['cached'] = True
     return sample
 
+def sample_pages(server, triple_pattern, id=1, repetition=0, page_range=[1,1], header={"accept": "application/json"}):
+    """
+    Samples a given pattern from the Linked Data Fragment for a range of pages and records
+    the metadata
+    :param server: Linked Data Fragment Server
+    :param triple_pattern: Pattern to be requested
+    :param id: Study ID
+    :return: Dict with the corresponding metadata
+    """
+    # Check for connection errors
+    try:
+        result = get_pattern(
+                server, triple_pattern=triple_pattern, headers=header)
+    except ConnectionError as conn_error:
+        raise conn_error
+
+
+    samples = []
+    meta = get_metadata(result)
+    meta_triples = triples_from_graph([meta[0]], meta[1])
+    total_items = __predicate_value(meta_triples, "totalItems")
+    per_page = __predicate_value(meta_triples, "PerPage")
+    pages = int(math.ceil(int(total_items) / int(per_page))) + 1
+
+    # Set pagination bounds
+    lower_bnd = page_range[0]
+    upper_bnd = min(pages, page_range[1])
+    if upper_bnd == -1: upper_bnd = pages
+    assert lower_bnd <= upper_bnd
+    for page in range(lower_bnd, upper_bnd+1,1):
+        sample = {}
+        try:
+            result = get_pattern(
+                server, triple_pattern=triple_pattern, page=page, header=header)
+        except ConnectionError as conn_error:
+            raise conn_error
+        elapsed = result.elapsed
+        if page == 1:
+            p1 = elapsed
+        sample['study_id'] = id
+        sample['elapsed'] = str(elapsed)
+        sample['timestamp'] = str(dt.datetime.now())
+        sample['perPage'] = per_page
+        sample['total_items'] = total_items
+        sample['vars'] = len(triple_pattern.variables)
+        sample['pattern'] = str(triple_pattern)
+        sample['server'] = server
+        sample['page'] = page
+        sample['relative_page_change'] = float((p1.microseconds-elapsed.microseconds)) / float(p1.microseconds)
+        if repetition == 0:
+            sample['cached'] = False
+        else:
+            sample['cached'] = True
+        samples.append(sample)
+    return samples
 
 def __predicate_value(triples, p):
 
     for triple in triples:
         if p in str(triple.predicate):
             return str(triple.object.value)
-
-
-if __name__ == '__main__':
-
-    file = "/Users/larsheling/Documents/Development/moosqe/queries/triple_patterns/tp1"
-    server = "http://fragments.dbpedia.org/2015/en"
-
-    t = Triple(URI("dbpedia:Georgia_Turner"), Variable("?p"), Variable("?o"))
-    r = get_pattern(server, t)
-    data = r.json()
-    namespaces = data['@context']
-    graph = data['@graph']
-    triples = triples_from_graph(graph, namespaces)
-    pprint(triples)

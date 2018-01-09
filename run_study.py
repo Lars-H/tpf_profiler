@@ -10,32 +10,30 @@ logger.setLevel(logging.INFO)
 sources = {
     "local" :
         {
+            # Add address for the TPFs controlled environment
             "dbpedia" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/db",
-            "db2014" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/db",
-            "wikidata": "http://aifb-ls3-vm8.aifb.kit.edu:3000/wikidata",
             "geonames": "http://aifb-ls3-vm8.aifb.kit.edu:3000/geonames",
-            "yago": "http://aifb-ls3-vm8.aifb.kit.edu:3000/yago",
             "dblp": "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp",
-            "wiktionary" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/wiktionary",
-            "lov" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/lov"
+            "wiktionary" : "http://aifb-ls3-vm8.aifb.kit.edu:3000/wiktionary"
         },
     "remote" :
         {
-            "dbpedia" : "http://fragments.dbpedia.org/2015/en",
-            "db2014" : "http://data.linkeddatafragments.org/dbpedia2014",
-            "wikidata": "https://query.wikidata.org/bigdata/ldf",
+            # Addresses for the real-world TPFs
+            "dbpedia" : "http://data.linkeddatafragments.org/dbpedia2014",
             "geonames": "http://data.linkeddatafragments.org/geonames",
-            "yago": None,
             "dblp": "http://data.linkeddatafragments.org/dblp",
-            "wiktionary" : "http://data.linkeddatafragments.org/wiktionary",
-            "lov" : "http://data.linkeddatafragments.org/lov",
+            "wiktionary" : "http://data.linkeddatafragments.org/wiktionary"
         }
 }
 
 def get_options():
+    """
+    Getting the command line options
+    :return: options
+    """
     parser = OptionParser()
     parser.add_option("-d", "--datasource", dest="datasource", type="string",
-                    help="Name of datasource", metavar="DATASORUCE")
+                    help="Name of datasource. \n Available: {0}".format(sources['local'].keys()), metavar="DATASORUCE")
     parser.add_option("-s", "--samples",
                      dest="samples", type="int",default=1,
                       help="Number of samples")
@@ -49,24 +47,35 @@ def get_options():
                      dest="write", type="int",default=0,
                       help="Write to database")
 
+    parser.add_option("--db_str",
+                     dest="db_conn_str", type="string",default=None,
+                      help="SQL Alchemy Engine DB connection string")
+
     (options, args) = parser.parse_args()
     return vars(options)
 
 def run_study(**kwargs):
-
+    """
+    Running the profiler based on the args
+    :param kwargs: Profiler options
+    :return: None
+    """
+    db_connection_str = kwargs['db_conn_str']
+    print(db_connection_str)
     remote = sources['remote'][kwargs['datasource']]
     local =  sources['local'][kwargs['datasource']]
     repetition = kwargs['caching']
     if kwargs['write'] == 1:
-        engine = create_engine('mysql://lhe:112358@localhost/moosqe')
-    else:
-        engine = None
+        if not db_connection_str is None:
+            engine = create_engine(db_connection_str)
+        else:
+            engine = None
 
     logger.info("Start study at " + str(datetime.now()))
     logger.info("Local: " + str(local))
     logger.info("Remote: " + str(remote))
     p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
-                 repetitions=repetition, db_conn=engine, header={"accept" : "application/ld+json"})
+                 repetitions=repetition, db_conn=engine, header={"accept" : "application/ld+json"}, save=kwargs['write'])
     p.run()
     logger.info("Study finished")
 

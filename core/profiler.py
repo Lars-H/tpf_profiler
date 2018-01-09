@@ -24,10 +24,15 @@ class Profiler(object):
         self.shuffle_patterns = kwargs.get("shuffle", True)
         self.alt_server = kwargs.get("alt_server", None)
         self.db_conn = kwargs.get("db_conn", None)
+        self.save = kwargs.get("save", False)
         self.header = kwargs.get("header", {"accept" : "application/json"} )
+        self.pages = kwargs.get("pages", None)
+        # Remove kwargs not to be saved in the results
         if not self.db_conn is None:
             kwargs.pop("db_conn")
             kwargs.pop("header")
+            kwargs.pop("save")
+            kwargs.pop("pages")
         # Get the servers ip addresses
         try:
             data = urllib2.urlopen(self.server)
@@ -68,23 +73,37 @@ class Profiler(object):
                 logger.info("Run: " + str(i + 1) + "/" + str(self.runs))
                 t0 = dt.datetime.now()
                 res = self.retrieve_patterns(patterns)
-                if not self.db_conn is None:
+                if self.save:
                     df = pd.DataFrame(res)
                     df['run'] = i
                     self.save_results(df)
                 results.extend(res)
                 logger.info("Runtime: " + str(dt.datetime.now() - t0))
+
+            # If saving CSV,
         except Exception as e:
             logger.exception(str(e))
+
+
 
         if not self.db_conn is None:
             self.save_run(samples)
 
+
     def save_results(self, df):
-
-        df.to_sql("results", self.db_conn,
-                  if_exists="append", index=False, chunksize=100)
-
+        """
+        Saving the result either to a database or as a csv dump
+        :param df: DataFrame to be saved
+        :return: None
+        """
+        if not self.db_conn is None:
+            df.to_sql("results", self.db_conn,
+                      if_exists="append", index=False, chunksize=100)
+            logger.info("Results saved to database: {0}".format(self.db_conn))
+        else:
+            filename = "{0}.csv".format(self.study_id)
+            df.to_csv(filename, mode='a', header=(df['run'].unique()[0]==0))
+            logger.info("Results saved to file: {0}".format(filename))
 
 
     def save_run(self, samples):
@@ -139,7 +158,10 @@ class Profiler(object):
                 for i in range(self.repetitions_per_pattern):
 
                     try:
-                        results.append(sample_ldf(server, pattern, repetition=i, id=self.study_id, header=self.header))
+                        if self.pages is None:
+                            results.append(sample_ldf(server, pattern, repetition=i, id=self.study_id, header=self.header))
+                        else:
+                            results.extend(sample_pages(server,pattern, repetition=i, id=self.study_id, header=self.header, page_range=self.pages))
                     except ConnectionError as conn_error:
                         # In Case of a Connection error
                         logger.error("Connection Error: " + str(conn_error))
@@ -193,21 +215,3 @@ class Profiler(object):
                 Triple(Variable("?s"), Variable("?p"), Variable("?o")))
 
         return triple_patterns
-
-
-
-if __name__ == '__main__':
-
-    remote = "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp"
-    local = "http://aifb-ls3-vm8.aifb.kit.edu:3000/dblp"
-    db = "https://query.wikidata.org/bigdata/ldf"
-    server = db
-    p = Profiler(server=local, samples=2,
-                          samples_per_page=2, log=True, header={"accept": "application/ld+json"})
-
-    for n in [100000]:
-        result = p.patterns_per_sample(n)
-        print("Samples: {0} -> Unique triple patterns: {1}".format(n, result))
-
-    #p.run()
-
