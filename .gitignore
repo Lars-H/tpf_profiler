@@ -2,7 +2,7 @@
 .idea/*
 
 # Generated data
-data/*
+#data/*
 
 # Misc
 .DS_Store
