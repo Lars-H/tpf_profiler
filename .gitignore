@@ -1,8 +1,8 @@
 # PyCharm
 .idea/*
 
-# Generated data
-#data/*
+# Analysis
+analysis/*
 
 # Misc
 .DS_Store
