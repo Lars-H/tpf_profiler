@@ -3,6 +3,11 @@
 
 # Analysis
 analysis/*
+# Cost
+cost_model/*
+
+# Data
+data/*
 
 # Misc
 .DS_Store
