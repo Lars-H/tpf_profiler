@@ -3,13 +3,16 @@ from sqlalchemy import create_engine
 from optparse import OptionParser
 from datetime import datetime
 import json
+import os
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+abs_path = os.path.dirname(os.path.realpath(__file__))
+ABS_PATH = abs_path
 # Load sources
-with open('sources.json') as json_data:
+with open(abs_path +  '/sources.json') as json_data:
     sources = json.load(json_data)
 
 def get_options():
@@ -34,6 +37,7 @@ def get_options():
     parser.add_option("-w", "--write",
                       dest="write", type="int", default=0,
                       help="Write to database")
+    parser.add_option("-e", action="store_true", dest="empty_answer")
 
     parser.add_option("--db_str",
                       dest="db_conn_str", type="string", default=None,
@@ -71,7 +75,7 @@ def run_study(**kwargs):
     # Setup the profiler
     try:
         p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
-                 repetitions=repetition, db_conn=engine, header={"accept": "application/ld+json"}, save=kwargs['write'])
+                 repetitions=repetition, db_conn=engine, header={"accept": "application/ld+json"}, save=kwargs['write'], empty_answers=kwargs['empty_answer'])
     except Exception as e:
         logger.error("Could not initalize the Profiler: \n{0}".format(e))
 

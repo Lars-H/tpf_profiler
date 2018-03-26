@@ -7,6 +7,8 @@ import pandas as pd
 import urllib2
 import socket
 import urlparse
+import os
+from random import randint
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -32,6 +34,7 @@ class Profiler(object):
         self.save = kwargs.get("save", False)
         self.header = kwargs.get("header", {"accept": "application/json"})
         self.pages = kwargs.get("pages", None)
+        self.empty_answers = kwargs.get("empty_answers", False)
         # Remove kwargs not to be saved in the results
         if not self.db_conn is None:
             kwargs.pop("db_conn")
@@ -59,7 +62,7 @@ class Profiler(object):
                 self.alt_server_ip = "1.1"
 
         # Generate a study_id
-        self.study_id = int(str(hash(dt.datetime.now()))[1:9])
+        self.study_id = int(dt.datetime.now().strftime("%Y%m%d%H%M%S"))
         logger.info("Study ID: " + str(self.study_id))
 
         # If we have an alternative server with the identical data
@@ -75,7 +78,8 @@ class Profiler(object):
         """
 
         samples = self.get_random_triples()
-        patterns = Profiler.generate_test_patterns(samples)
+        patterns = self.generate_test_patterns(samples)
+        #patterns = Profiler.generate_empty_patterns(samples)
         results = []
         try:
             for i in range(self.runs):
@@ -107,8 +111,12 @@ class Profiler(object):
                       if_exists="append", index=False, chunksize=100)
             logger.info("Results saved to database: {0}".format(self.db_conn))
         else:
-            filename = "{0}.csv".format(self.study_id)
+            path = os.path.dirname(os.path.realpath(__file__))
+            path = os.path.abspath(os.path.join(path, os.pardir))
+            print(path)
+            filename = path + "/data/{0}.csv".format(self.study_id)
             df.to_csv(filename, mode='a', header=(df['run'].unique()[0] == 0))
+
             logger.info("Results saved to file: {0}".format(filename))
 
     def save_run(self, samples):
@@ -201,17 +209,18 @@ class Profiler(object):
         """
         self.num_of_samples = n
         samples = self.get_random_triples()
-        patterns = Profiler.generate_test_patterns(samples)
+
+        patterns = self.generate_test_patterns(samples)
         return len(patterns)
 
-    @staticmethod
-    def generate_test_patterns(triples):
+    def generate_test_patterns(self, triples):
         """
         Generates a list of triple patterns from a list of triples
         :param triples: Triples
         :return: List of triple patterns
         """
         triple_patterns = set()
+
         for triple in triples:
             triple_patterns.add(triple)
             triple_patterns.add(
@@ -231,8 +240,63 @@ class Profiler(object):
 
         triple_patterns = list(triple_patterns)
         # For every pattern add one spo
+        logger.info("Empty answers: {0}".format(self.empty_answers))
+        unknwn = URI("http://example.org/unkwown")
         for i in range(len(triples)):
             triple_patterns.append(
                 Triple(Variable("?s"), Variable("?p"), Variable("?o")))
+            if self.empty_answers:
+                # Add a triple with no answers
+                variant = randint(1,7)
+                if variant == 1:
+                    t = Triple(unknwn, Variable("?p"), Variable("?o"))
+                elif variant == 2:
+                    t = Triple(unknwn, unknwn, Variable("?o"))
+                elif variant == 3:
+                    t = Triple(unknwn, unknwn, unknwn)
+                elif variant == 4:
+                    t = Triple(Variable("?s"), unknwn, Variable("?o"))
+                elif variant == 5:
+                    t = Triple(Variable("?s"), unknwn, unknwn)
+                elif variant == 6:
+                    t = Triple(unknwn, Variable("?p"), unknwn)
+                elif variant == 7:
+                    t = Triple(Variable("?s"), unknwn, Variable("?o"))
+                triple_patterns.append(t)
 
+
+        return triple_patterns
+
+    @staticmethod
+    def generate_empty_patterns(triples):
+        """
+        Generates a list of triple patterns from a list of triples
+        :param triples: Triples
+        :return: List of triple patterns
+        """
+        logger.info("Generating invalid patterns.")
+        triple_patterns = set()
+        fake_subject = URI("http://example.org/unkwown")
+        fake_predicate = URI("http://example.org/predicate")
+        fake_object = URI("http://example.org/object")
+
+        for triple in triples:
+            triple_patterns.add(Triple(fake_subject, fake_predicate ,fake_object))
+            triple_patterns.add(
+                Triple(fake_subject, triple.predicate, Variable("?o")))
+            triple_patterns.add(
+                Triple(fake_subject, Variable("?p"), Variable("?o")))
+            triple_patterns.add(
+                Triple(Variable("?s"), fake_predicate, Variable("?o")))
+            triple_patterns.add(
+                Triple(Variable("?s"), fake_predicate, triple.object))
+            triple_patterns.add(
+                Triple(Variable("?s"), Variable("?p"), fake_object))
+            triple_patterns.add(
+                Triple(triple.subject, Variable("?p"), fake_object))
+
+        logger.info("Number of unique patterns: " + str(len(triple_patterns)))
+
+        triple_patterns = list(triple_patterns)
+        raise NotImplementedError
         return triple_patterns
