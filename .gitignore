@@ -9,6 +9,12 @@ cost_model/*
 # Data
 data/*
 
+# Tests
+tests/*
+
+# TPF Configs
+tpf_configs/*
+
 # Misc
 .DS_Store
 
