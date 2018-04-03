@@ -15,8 +15,7 @@ Follow these steps to setup and run the profiler:
 3. Install virtual environment package: `[sudo] pip install virtualenv`
 4. Activate the virtual environment: `. venv/bin/activate`
 5. Optional: Edit the `sources.json` to specify the mappings for TPF server pairs (local and remote)
-6. See the command line tool options via `python run_study.py -h`
-7. Use command line to run the profiler. E.g. `python run_study --url http://data.linkeddatafragments.org/dblp -s 10 -w 1`
+6. See the command line tool options via `python run_study.py -h``
 
 Setting up the controlled Environment:
 - Find the installation guide for setting up a local TPF server using Node.js [here](https://github.com/LinkedDataFragments/Server.js)
@@ -27,6 +26,40 @@ Setting up the controlled Environment:
 	* [Wiktionary](http://downloads.linkeddatafragments.org/hdt/wiktionary_en_2012-07-21.hdt)	
 - [HDT Tools](https://github.com/rdfhdt/hdt-cpp) for generating RDF files from HDT files
 - [Virtuoso SPARQL Endpoint](https://virtuoso.openlinksw.com/dataspace/doc/dav/wiki/Main/VOSSparqlProtocol)
+
+## Examples
+
+Use command line to run the profiler and set the options to specify the profiler settings.
+ 
+Example:  
+`
+- DBLP TPF with 10 samples and 1 run:
+
+```bash
+python run_study --url http://data.linkeddatafragments.org/dblp -s 10 -r -1
+```
+
+
+- DBpedia TPF with 100 samples, 2 runs and write the results to a CSV file:
+`````bash
+python run_study --url http://data.linkeddatafragments.org/dbpedia -s 100 -r -2 -w 1
+`````
+
+
+
+## How to Cite
+
+````text
+@misc{HelingTPFP2018,
+  author = {Heling, Lars},
+  title = {Triple Pattern Fragment Profiler},
+  year = {2018},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/Lars-H/tpf_profiler}}
+  }
+````
+
 
 ## Study Results
 
