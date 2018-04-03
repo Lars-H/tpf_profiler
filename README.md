@@ -25,8 +25,13 @@ Setting up the controlled Environment:
 	* [DBpedia](http://downloads.linkeddatafragments.org/hdt/dbpedia2014_en_multi.hdt)
 	* [GeoNames](http://downloads.linkeddatafragments.org/hdt/geonames-11-11-2012.hdt)
 	* [Wiktionary](http://downloads.linkeddatafragments.org/hdt/wiktionary_en_2012-07-21.hdt)	
+- [HDT Tools](https://github.com/rdfhdt/hdt-cpp) for generating RDF files from HDT files
+- [Virtuoso SPARQL Endpoint](https://virtuoso.openlinksw.com/dataspace/doc/dav/wiki/Main/VOSSparqlProtocol)
 
 ## Study Results
 
 - The raw data of our study is provided freely available [here](https://figshare.com/articles/study_data_csv/5774163)
 
+## License
+
+This work is licensed under [GNU/GPL v2](https://www.gnu.org/licenses/gpl-2.0.html).
