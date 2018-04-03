@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1211622.svg)](https://doi.org/10.5281/zenodo.1211622)
+
 # Triple Pattern Fragment Profiler
 
 The Triple Pattern Fragment Profiler is used to study the performance w.r.t. response time of Triple Pattern Fragments (TPFs). The profiler samples as set of triples from a given TPF and derives a set of triple patterns from those triples by replacing RDF terms with variables. Thereafter, these triple patterns are used to measure the response time of the TPF and record additional metadata. 
@@ -16,6 +18,8 @@ Follow these steps to setup and run the profiler:
 4. Activate the virtual environment: `. venv/bin/activate`
 5. Optional: Edit the `sources.json` to specify the mappings for TPF server pairs (local and remote)
 6. See the command line tool options via `python run_study.py -h``
+
+## Setting up the Experimental Settings
 
 Setting up the controlled Environment:
 - Find the installation guide for setting up a local TPF server using Node.js [here](https://github.com/LinkedDataFragments/Server.js)
@@ -63,7 +67,7 @@ python run_study --url http://data.linkeddatafragments.org/dbpedia -s 100 -r -2 
 
 ## Study Results
 
-- The raw data of our study is provided freely available [here](https://figshare.com/articles/study_data_csv/5774163)
+- The raw data create for the evaluation of TPF servers in our study is provided freely available [here](https://figshare.com/articles/study_data_csv/5774163)
 
 ## License
 
