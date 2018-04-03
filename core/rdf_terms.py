@@ -1,5 +1,7 @@
 # encoding: utf-8
-
+import urllib
+import urllib2
+import codecs
 
 def to_utf8(text):
     if isinstance(text, unicode):
@@ -20,6 +22,25 @@ class RDF_term(object):
             return URI(kwargs['@id'], namespaces=kwargs['namespaces'])
         else:
             return Literal(kwargs)
+
+    @staticmethod
+    def get_term(arg):
+        if isinstance(arg, str):
+            if (arg[0] == "<" and arg[-1] == ">") \
+                    or "http://" in arg \
+                    or "https://" in arg \
+                    or "urn:" in arg \
+                    or "ftp:" in arg:
+                #arg = arg.replace("\\\\", "\\")
+                #arg = codecs.escape_decode(arg)[0]
+                #arg = urllib2.unquote(arg).decode('utf8')
+                return URI(arg)
+            elif arg[0] == "?" or arg[0] == "$":
+                return Variable(arg)
+            elif arg[0] == '"':
+                return Literal(value=arg)
+            else:
+                raise NotImplementedError
 
     @property
     def value(self):

@@ -43,6 +43,10 @@ def get_options():
                       dest="db_conn_str", type="string", default=None,
                       help="SQL Alchemy Engine DB connection string")
 
+    parser.add_option("--sample-file",
+                      dest="sample_file", type="string", default=None,
+                      help="File containing the sampled triple pattern.")
+
     (options, args) = parser.parse_args()
     return vars(options)
 
@@ -75,7 +79,8 @@ def run_study(**kwargs):
     # Setup the profiler
     try:
         p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
-                 repetitions=repetition, db_conn=engine, header={"accept": "application/ld+json"}, save=kwargs['write'], empty_answers=kwargs['empty_answer'])
+                 repetitions=repetition, db_conn=engine, header={"accept": "application/ld+json"}, save=kwargs['write'], empty_answers=kwargs['empty_answer'],
+                     sample_file=kwargs['sample_file'])
     except Exception as e:
         logger.error("Could not initalize the Profiler: \n{0}".format(e))
 

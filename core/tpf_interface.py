@@ -1,5 +1,5 @@
 import requests
-from requests import ConnectionError
+from requests import ConnectionError, Timeout, ConnectTimeout
 import datetime as dt
 import math
 from core.rdf_terms import *
@@ -29,10 +29,17 @@ def get_pattern(server, triple_pattern, **kwargs):
     logger.info("Page: " + str(page))
     headers = kwargs.get('headers', {"accept": "application/json"})
     try:
-        result = requests.get(server, params=payload, headers=headers)
+        result = requests.get(server, params=payload, headers=headers, timeout=10)
+    except Timeout as timeout_error:
+        logger.exception("Timeout at page {0}.".format(page))
+        return None
+    except  ConnectTimeout as timeout_error:
+        logger.exception("Timeout at page {0}.".format(page))
+        return None
     except ConnectionError as conn_error:
         raise conn_error
-
+    except Exception as e:
+        raise e
     return result
 
 
@@ -47,6 +54,7 @@ def get_random_triples(result, n, no_literals=True):
     namespaces = data['@context']
     graph = data['@graph']
     triples = triples_from_graph(graph, namespaces)
+    if len(triples) == 0: return set()
     idx = [i for i in range(len(triples))]
     random.shuffle(idx)
     random_triples = set()
@@ -70,6 +78,9 @@ def triples_from_graph(graph, namespaces):
     """
     results = []
     for item in graph:
+        if not isinstance(item, dict):
+            #return []
+            raise KeyError
         if "@graph" in item.keys():
             metadata = item['@graph']
         else:
@@ -221,9 +232,12 @@ def sample_page(server, triple_pattern, id=1, repetition=0, header={"accept": "a
     sample = {}
     meta = get_metadata(result)
     meta_triples = triples_from_graph([meta[0]], meta[1])
-    total_items = __predicate_value(meta_triples, "totalItems")
-    per_page = __predicate_value(meta_triples, "PerPage")
-    pages = int(math.ceil(int(total_items) / int(per_page)))
+    if len(meta_triples) == 0:
+        total_items = -1
+        per_page = 0
+    else:
+        total_items = __predicate_value(meta_triples, "totalItems")
+        per_page = __predicate_value(meta_triples, "PerPage")
     sample['study_id'] = id
     sample['elapsed'] = str(result.elapsed)
     sample['timestamp'] = str(dt.datetime.now())
@@ -259,8 +273,12 @@ def sample_pages(server, triple_pattern, id=1, repetition=0, page_range=[1, 1], 
     samples = []
     meta = get_metadata(result)
     meta_triples = triples_from_graph([meta[0]], meta[1])
-    total_items = __predicate_value(meta_triples, "totalItems")
-    per_page = __predicate_value(meta_triples, "PerPage")
+    if len(meta_triples) == 0:
+        total_items = -1
+        per_page = 0
+    else:
+        total_items = __predicate_value(meta_triples, "totalItems")
+        per_page = __predicate_value(meta_triples, "PerPage")
     pages = int(math.ceil(int(total_items) / int(per_page))) + 1
 
     # Set pagination bounds

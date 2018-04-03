@@ -35,8 +35,10 @@ class Profiler(object):
         self.header = kwargs.get("header", {"accept": "application/json"})
         self.pages = kwargs.get("pages", None)
         self.empty_answers = kwargs.get("empty_answers", False)
+        self.sample_file = kwargs.get("sample_file", None)
         # Remove kwargs not to be saved in the results
         if not self.db_conn is None:
+            kwargs.pop("empty_answers")
             kwargs.pop("db_conn")
             kwargs.pop("header")
             kwargs.pop("save")
@@ -76,10 +78,12 @@ class Profiler(object):
         Run the profiler
         :return:
         """
+        if self.sample_file is None:
+            samples = self.get_random_triples()
+            patterns = self.generate_test_patterns(samples)
+        else:
+            patterns = self.read_file(self.sample_file)
 
-        samples = self.get_random_triples()
-        patterns = self.generate_test_patterns(samples)
-        #patterns = Profiler.generate_empty_patterns(samples)
         results = []
         try:
             for i in range(self.runs):
@@ -96,9 +100,8 @@ class Profiler(object):
             # If saving CSV,
         except Exception as e:
             logger.exception(str(e))
+            raise e
 
-        if not self.db_conn is None:
-            self.save_run(samples)
 
     def save_results(self, df):
         """
@@ -154,12 +157,15 @@ class Profiler(object):
         result = get_pattern(self.server, spo, headers=self.header)
         metadata = get_parsed_metadata(result)
         triples = set()
-
+        max_pages = metadata['pages']
         while len(triples) < self.num_of_samples:
-            page = random.randint(1, metadata['pages'])
+            page = random.randint(1, max_pages)
             result = get_pattern(
                 self.server, spo, page=page, headers=self.header)
-            triples.update(get_random_triples(result, self.samples_per_page))
+            if not result is None:
+                triples.update(get_random_triples(result, self.samples_per_page))
+            else:
+                logger.exception("Could not get page {0}.".format(page))
 
         logger.info("Samples generated from TPF: " + str(len(triples)))
         return triples
@@ -177,6 +183,7 @@ class Profiler(object):
         results = []
         if self.shuffle_patterns:
             random.shuffle(triple_patterns)
+        failed_patterns = set()
         for pattern in triple_patterns:
             for server in self.servers:
                 for i in range(self.repetitions_per_pattern):
@@ -198,6 +205,12 @@ class Profiler(object):
                         logger.info("Sleeping")
                         sleep(20)
                         logger.info("Continue")
+                    except Exception as e:
+                        logger.exception("Could not get pattern: {0}".format(pattern))
+                        failed_patterns.add(pattern)
+
+        logger.info("Failed patterns: \n {0}".format(failed_patterns))
+        logger.info("Failed patterns count: {0}".format(len(failed_patterns)))
         return results
 
     def patterns_per_sample(self, n):
@@ -239,9 +252,10 @@ class Profiler(object):
         logger.info("Number of unique patterns: " + str(len(triple_patterns)))
 
         triple_patterns = list(triple_patterns)
+
         # For every pattern add one spo
         logger.info("Empty answers: {0}".format(self.empty_answers))
-        unknwn = URI("http://example.org/unkwown")
+        unknwn = URI("http://example.org/unknown")
         for i in range(len(triples)):
             triple_patterns.append(
                 Triple(Variable("?s"), Variable("?p"), Variable("?o")))
@@ -263,40 +277,31 @@ class Profiler(object):
                 elif variant == 7:
                     t = Triple(Variable("?s"), unknwn, Variable("?o"))
                 triple_patterns.append(t)
-
-
         return triple_patterns
 
-    @staticmethod
-    def generate_empty_patterns(triples):
-        """
-        Generates a list of triple patterns from a list of triples
-        :param triples: Triples
-        :return: List of triple patterns
-        """
-        logger.info("Generating invalid patterns.")
-        triple_patterns = set()
-        fake_subject = URI("http://example.org/unkwown")
-        fake_predicate = URI("http://example.org/predicate")
-        fake_object = URI("http://example.org/object")
 
-        for triple in triples:
-            triple_patterns.add(Triple(fake_subject, fake_predicate ,fake_object))
-            triple_patterns.add(
-                Triple(fake_subject, triple.predicate, Variable("?o")))
-            triple_patterns.add(
-                Triple(fake_subject, Variable("?p"), Variable("?o")))
-            triple_patterns.add(
-                Triple(Variable("?s"), fake_predicate, Variable("?o")))
-            triple_patterns.add(
-                Triple(Variable("?s"), fake_predicate, triple.object))
-            triple_patterns.add(
-                Triple(Variable("?s"), Variable("?p"), fake_object))
-            triple_patterns.add(
-                Triple(triple.subject, Variable("?p"), fake_object))
+    def read_file(self, file):
 
-        logger.info("Number of unique patterns: " + str(len(triple_patterns)))
+        patterns = []
+        try:
+            with open(file, 'r') as samples_file:
+                for line in samples_file.readlines():
+                    line = line.replace('\n', '')
+                    splits = line.split(" ")
+                    terms = []
+                    for split in splits:
+                        if split[0] == '"':
+                            terms.append(split[1:])
+                        elif split[-1] == '"':
+                            terms.append(split[:-1])
+                        else:
+                            terms.append(split)
 
-        triple_patterns = list(triple_patterns)
-        raise NotImplementedError
-        return triple_patterns
+                    if len(terms) == 3:
+                        pattern = Triple(RDF_term.get_term(terms[0]), RDF_term.get_term(terms[1]), RDF_term.get_term(terms[2]))
+                        patterns.append(pattern)
+                    else:
+                        logger.info("Didn't read line: {0}".format(line))
+            return patterns
+        except Exception as e:
+            raise e
