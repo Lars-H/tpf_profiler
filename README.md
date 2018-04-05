@@ -60,6 +60,7 @@ python run_study --url http://data.linkeddatafragments.org/dbpedia -s 100 -r -2 
   year = {2018},
   publisher = {GitHub},
   journal = {GitHub repository},
+  doi = {\url{https://doi.org/10.5281/zenodo.1211622}},
   howpublished = {\url{https://github.com/Lars-H/tpf_profiler}}
   }
 ````
