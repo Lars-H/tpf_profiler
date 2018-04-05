@@ -34,6 +34,8 @@ class Profiler(object):
         self.save = kwargs.get("save", False)
         self.header = kwargs.get("header", {"accept": "application/json"})
         self.pages = kwargs.get("pages", None)
+        if not self.pages is None:
+            self.pages = [1, self.pages] # Definng the page range
         self.empty_answers = kwargs.get("empty_answers", False)
         self.sample_file = kwargs.get("sample_file", None)
         # Remove kwargs not to be saved in the results
@@ -208,9 +210,10 @@ class Profiler(object):
                     except Exception as e:
                         logger.exception("Could not get pattern: {0}".format(pattern))
                         failed_patterns.add(pattern)
+        if len(failed_patterns) > 0:
+            logger.info("Failed patterns: \n {0}".format(failed_patterns))
+            logger.info("Failed patterns count: {0}".format(len(failed_patterns)))
 
-        logger.info("Failed patterns: \n {0}".format(failed_patterns))
-        logger.info("Failed patterns count: {0}".format(len(failed_patterns)))
         return results
 
     def patterns_per_sample(self, n):
@@ -281,7 +284,13 @@ class Profiler(object):
 
 
     def read_file(self, file):
-
+        """
+        Reads a file with triple patterns.
+        Patterns need to be seperated by "\n" and not contain a "." at the end
+        
+        :param file: File with triple patterns
+        :return: List of triple pattern objects
+        """
         patterns = []
         try:
             with open(file, 'r') as samples_file:

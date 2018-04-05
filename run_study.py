@@ -47,6 +47,10 @@ def get_options():
                       dest="sample_file", type="string", default=None,
                       help="File containing the sampled triple pattern.")
 
+    parser.add_option("--pages",
+                      dest="pages_upper", type="int", default=None,
+                      help="Number of pages to be retrieved for each pattern.")
+
     (options, args) = parser.parse_args()
     return vars(options)
 
@@ -80,7 +84,7 @@ def run_study(**kwargs):
     try:
         p = Profiler(server=local, alt_server=remote, runs=kwargs['runs'], total_samples=kwargs['samples'], samples_per_page=1,
                  repetitions=repetition, db_conn=engine, header={"accept": "application/ld+json"}, save=kwargs['write'], empty_answers=kwargs['empty_answer'],
-                     sample_file=kwargs['sample_file'])
+                     sample_file=kwargs['sample_file'], pages=kwargs['pages_upper'])
     except Exception as e:
         logger.error("Could not initalize the Profiler: \n{0}".format(e))
 
