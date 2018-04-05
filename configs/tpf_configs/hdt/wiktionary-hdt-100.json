@@ -1,0 +1,12 @@
+{
+  "title": "My Linked Data Fragments server",
+
+  "datasources": {
+    "wiktionary": {
+      "title": "Wiktionary English",
+      "type": "HdtDatasource",
+      "description": "Wiktionary Dump with an HDT back-end",
+      "settings": { "file": "/home/mac/data/node/wiktionary_en_2012-07-21.hdt" }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "title": "My Linked Data Fragments server",
+
+  "datasources": {
+    "dblp-sparql": {
+      "title": "DBLP (Virtuoso)",
+      "type": "SparqlDatasource",
+      "description": "DBLP with a Virtuoso back-end",
+      "settings": { "endpoint": "http://172.22.204.207:8890/sparql", "defaultGraph": "http://172.22.204.207/DBLP2017" }
+    }
+  },
+  "routers": [
+    { "type": "DatasourceRouter" },
+    { "type": "TriplePatternRouter" },
+    { "type": "PageRouter", "settings": { "pageSize": 500 } }
+  ]
+}

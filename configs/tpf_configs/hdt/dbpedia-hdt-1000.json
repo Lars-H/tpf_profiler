@@ -1,0 +1,17 @@
+{
+  "title": "My Linked Data Fragments server",
+
+  "datasources": {
+    "db": {
+      "title": "DBpedia 2014",
+      "type": "HdtDatasource",
+      "description": "DBpedia 2014",
+      "settings": { "file": "/home/mac/data/node/dbpedia2014_en_multi.hdt" }
+    }
+  },
+  "routers": [
+    { "type": "DatasourceRouter" },
+    { "type": "TriplePatternRouter" },
+    { "type": "PageRouter", "settings": { "pageSize": 1000 } }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "title": "My Linked Data Fragments server",
+
+  "datasources": {
+    "dblp": {
+      "title": "DBLP Computer Science Bibliography",
+      "type": "HdtDatasource",
+      "description": "DBLP 2017 Dump with an HDT back-end",
+      "settings": { "file": "/home/mac/data/node/dblp-20170124.hdt" }
+    },
+    "db": {
+      "title": "DBpedia 2014",
+      "type": "HdtDatasource",
+      "description": "DBpedia 2014 with an HDT back-end",
+      "settings": { "file": "/home/mac/data/node/dbpedia2014_en_multi.hdt" }
+    },
+    "geonames": {
+      "title": "Geonames",
+      "type": "HdtDatasource",
+      "description": "Geonames 2012-11-11 Dump with an HDT back-end",
+      "settings": { "file": "/home/mac/data/node/geonames-11-11-2012.hdt" }
+    },
+    "wiktionary": {
+      "title": "Wiktionary English",
+      "type": "HdtDatasource",
+      "description": "Wiktionary Dump with an HDT back-end",
+      "settings": { "file": "/home/mac/data/node/wiktionary_en_2012-07-21.hdt" }
+    }
+  }
+}
