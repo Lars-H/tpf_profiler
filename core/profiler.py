@@ -280,6 +280,7 @@ class Profiler(object):
                 elif variant == 7:
                     t = Triple(Variable("?s"), unknwn, Variable("?o"))
                 triple_patterns.append(t)
+
         return triple_patterns
 
 
@@ -287,7 +288,7 @@ class Profiler(object):
         """
         Reads a file with triple patterns.
         Patterns need to be seperated by "\n" and not contain a "." at the end
-        
+
         :param file: File with triple patterns
         :return: List of triple pattern objects
         """
