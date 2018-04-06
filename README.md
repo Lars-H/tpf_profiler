@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1211622.svg)](https://doi.org/10.5281/zenodo.1211622)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1211621.svg)](https://doi.org/10.5281/zenodo.1211621)
 
 # Triple Pattern Fragment Profiler
 
@@ -74,4 +74,4 @@ python run_study --url http://data.linkeddatafragments.org/dbpedia -s 100 -r -2 
 
 ## License
 
-This work is licensed under [GNU/GPL v2](https://www.gnu.org/licenses/gpl-2.0.html).
+This work is licensed under BSD-3-Clause.
