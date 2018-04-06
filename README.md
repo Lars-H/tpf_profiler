@@ -54,15 +54,9 @@ python run_study --url http://data.linkeddatafragments.org/dbpedia -s 100 -r -2 
 ## How to Cite
 
 ````text
-@misc{HelingTPFP2018,
-  author = {Heling, Lars},
-  title = {Triple Pattern Fragment Profiler},
-  year = {2018},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  doi = {\url{https://doi.org/10.5281/zenodo.1211622}},
-  howpublished = {\url{https://github.com/Lars-H/tpf_profiler}}
-  }
+Lars-H. (2018, April 6). 
+Lars-H/tpf_profiler: Release v0.2 (Version 0.2). 
+Zenodo. http://doi.org/10.5281/zenodo.1213694
 ````
 
 
