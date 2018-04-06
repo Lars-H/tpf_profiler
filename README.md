@@ -68,7 +68,9 @@ python run_study --url http://data.linkeddatafragments.org/dbpedia -s 100 -r -2 
 
 ## Study Results
 
-- The raw data create for the evaluation of TPF servers in our study is provided freely available [here](https://figshare.com/articles/study_data_csv/5774163)
+- The raw data create for the evaluation of TPF servers in our study is provided freely available [here](https://ndownloader.figshare.com/files/10991108) as a raw CSV file.
+- The statistical analysis providing the basis for our evaluation is available in the `notebooks` directory as a Jupyter Notebook.
+- The visulaizations for the publication is also provided in the `notebooks` directory 
 
 ## License
 
