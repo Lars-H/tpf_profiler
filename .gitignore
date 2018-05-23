@@ -12,11 +12,15 @@ data/*
 # Tests
 tests/*
 
+# Webapp
+webapp/*
+
 # TPF Configs
 tpf_configs/*
 
 # Misc
 .DS_Store
+Features_Ideas.md
 
 # Complied Python Code
 *.pyc
