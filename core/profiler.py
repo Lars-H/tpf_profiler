@@ -38,6 +38,8 @@ class Profiler(object):
             self.pages = [1, self.pages] # Definng the page range
         self.empty_answers = kwargs.get("empty_answers", False)
         self.sample_file = kwargs.get("sample_file", None)
+        self._requests = 0
+        self._total_requests = 1
         # Remove kwargs not to be saved in the results
         if not self.db_conn is None:
             kwargs.pop("empty_answers")
@@ -83,6 +85,7 @@ class Profiler(object):
         if self.sample_file is None:
             samples = self.get_random_triples()
             patterns = self.generate_test_patterns(samples)
+            self._total_requests = len(patterns)
         else:
             patterns = self.read_file(self.sample_file)
 
@@ -186,10 +189,10 @@ class Profiler(object):
         if self.shuffle_patterns:
             random.shuffle(triple_patterns)
         failed_patterns = set()
+        self._requests = 0
         for pattern in triple_patterns:
             for server in self.servers:
                 for i in range(self.repetitions_per_pattern):
-
                     try:
                         if self.pages is None:
                             results.append(sample_page(
@@ -197,6 +200,7 @@ class Profiler(object):
                         else:
                             results.extend(sample_pages(
                                 server, pattern, repetition=i, id=self.study_id, header=self.header, page_range=self.pages))
+                        self._requests  += 1
                     except ConnectionError as conn_error:
                         # In Case of a Connection error
                         logger.error("Connection Error: " + str(conn_error))
@@ -315,3 +319,11 @@ class Profiler(object):
             return patterns
         except Exception as e:
             raise e
+
+    @property
+    def request_count(self):
+        return self._requests
+
+    @property
+    def total_requests(self):
+        return self._total_requests
