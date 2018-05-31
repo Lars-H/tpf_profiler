@@ -59,13 +59,15 @@ def get_random_triples(result, n, no_literals=True):
     random.shuffle(idx)
     random_triples = set()
     for i in idx:
-        if not triples[i].contains_literal and no_literals:
+        if not (triples[i].contains_literal and no_literals):
             try:
                 random_triples.add(triples[i])
             except UnicodeEncodeError as e:
+                logger.info("Unicode error")
                 continue
         if len(random_triples) == n:
             break
+
     return random_triples
 
 

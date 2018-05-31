@@ -32,6 +32,8 @@ class Profiler(object):
         self.alt_server = kwargs.get("alt_server", None)
         self.db_conn = kwargs.get("db_conn", None)
         self.save = kwargs.get("save", False)
+        self.output_directory = kwargs.get("output_directory", None)
+        self.filename = kwargs.get("filename", None)
         self.header = kwargs.get("header", {"accept": "application/json"})
         self.pages = kwargs.get("pages", None)
         if not self.pages is None:
@@ -40,6 +42,7 @@ class Profiler(object):
         self.sample_file = kwargs.get("sample_file", None)
         self._requests = 0
         self._total_requests = 1
+        self._max_sample_page = kwargs.get("max_sample_page", 0)
         # Remove kwargs not to be saved in the results
         if not self.db_conn is None:
             kwargs.pop("empty_answers")
@@ -119,12 +122,17 @@ class Profiler(object):
                       if_exists="append", index=False, chunksize=100)
             logger.info("Results saved to database: {0}".format(self.db_conn))
         else:
-            path = os.path.dirname(os.path.realpath(__file__))
-            path = os.path.abspath(os.path.join(path, os.pardir))
-            print(path)
-            filename = path + "/data/{0}.csv".format(self.study_id)
-            df.to_csv(filename, mode='a', header=(df['run'].unique()[0] == 0))
+            if self.output_directory is None:
+                path = os.path.dirname(os.path.realpath(__file__))
+                path = os.path.abspath(os.path.join(path, os.pardir))
+                filename = path + "/data/{0}.csv".format(self.study_id)
+            else:
+                if not self.filename is None:
+                    filename = self.output_directory + "/{0}.csv".format(self.filename)
+                else:
+                    filename = self.output_directory + "/{0}.csv".format(self.study_id)
 
+            df.to_csv(filename, mode='a', header=(df['run'].unique()[0] == 0))
             logger.info("Results saved to file: {0}".format(filename))
 
     def save_run(self, samples):
@@ -163,6 +171,7 @@ class Profiler(object):
         metadata = get_parsed_metadata(result)
         triples = set()
         max_pages = metadata['pages']
+        if self._max_sample_page > 0: max_pages = self._max_sample_page
         while len(triples) < self.num_of_samples:
             page = random.randint(1, max_pages)
             result = get_pattern(
