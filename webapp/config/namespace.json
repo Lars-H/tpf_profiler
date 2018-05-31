@@ -1,0 +1,21 @@
+{
+  "http://dbpedia.org/ontology/" : "dbo",
+  "http://dbpedia.org/property/" : "dbp",
+  "http://dbpedia.org/resource/" : "dbc",
+  "http://dbpedia.org/resource/Category:" : "dbc",
+  "http://rdf.freebase.com/ns/" : "freebase",
+  "http://www.w3.org/1999/02/22-rdf-syntax-ns#" : "rdf",
+  "http://www.w3.org/2000/01/rdf-schema#" : "rdfs",
+  "http://www.w3.org/2002/07/owl#" : "owl",
+  "http://xmlns.com/foaf/0.1/" : "foaf",
+  "http://dblp.l3s.de/d2r/resource/" : "dblp",
+  "http://wiktionary.dbpedia.org/terms" : "wiktt",
+  "http://wiktionary.dbpedia.org/resource/" : "wiktr",
+  "http://www.wikidata.org/entity/" : "wikidata",
+  "http://en.wikipedia.org/wiki/" : "wikipedia-en",
+  "http://en.wiktionary.org/wiki/": "wiktionary-en",
+  "http://dx.doi.org/": "doi",
+  "http://www.geonames.org/ontology#" : "geoo",
+  "http://sws.geonames.org/" : "geonames",
+  "http://geonames.org/" : "geonames-org"
+}

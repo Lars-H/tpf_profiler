@@ -1,0 +1,482 @@
+{% extends "layout.html" %}
+{% block title %}Comparison{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+
+    function change_select_stat(ab) {
+        var e = document.getElementById("radar_stat_" + ab);
+        var seL_stat = e.options[e.selectedIndex].value;
+        console.log(seL_stat)
+
+        if (seL_stat == "mean") plot_radar(Object.keys(stats[ab]['mean']), Object.values(stats[ab]['mean']), ab, false, seL_stat);
+        else if (seL_stat == "median") plot_radar(Object.keys(stats[ab]['median']), Object.values(stats[ab]['median']), ab, false, seL_stat);
+        else if (seL_stat == "max") plot_radar(Object.keys(stats[ab]['max']), Object.values(stats[ab]['max']), ab, false, seL_stat);
+        else if (seL_stat == "min") plot_radar(Object.keys(stats[ab]['min']), Object.values(stats[ab]['min']), ab, false, seL_stat);
+    }
+
+    function mean(elmt) {
+        var sum = 0;
+        for (var i = 0; i < elmt.length; i++) {
+            sum += parseInt(elmt[i], 10); //don't forget to add the base
+        }
+
+        var mean = sum / elmt.length;
+        return mean
+    }
+
+    function max(elmt) {
+        var max = 0;
+        for (var i = 0; i < elmt.length; i++) {
+            var val = parseInt(elmt[i], 10);
+            if (val > max) max = val;
+        }
+
+        return max
+    }
+
+    function min(elmt) {
+        var min = max(elmt)
+        for (var i = 0; i < elmt.length; i++) {
+            var val = parseInt(elmt[i], 10);
+            if (val < min) min = val;
+        }
+        return min
+    }
+
+    function median(values) {
+
+        values.sort(function (a, b) {
+            return a - b;
+        });
+
+        var half = Math.floor(values.length / 2);
+
+        if (values.length % 2)
+            return values[half];
+        else
+            return (values[half - 1] + values[half]) / 2.0;
+    }
+
+    function plot_radar(keys, values, dest, init, stats) {
+        var max = 0
+        for (var i = 0; i < values.length; i++) {
+            if (values[i] > max) max = values[i];
+        }
+
+        polar_traces = [{
+            type: 'scatterpolar',
+            r: values,
+            theta: keys,
+            name: keys,
+            fill: 'toself'
+        }]
+        stats = stats.charAt(0).toUpperCase() + stats.slice(1);
+        layout = {
+            title: stats + " response times",
+            polar: {
+                radialaxis: {
+                    visible: true,
+                    range: [0, max]
+                }
+            },
+            showlegend: false
+        }
+        if (!init) Plotly.deleteTraces("polar_plt_" + dest, 0)
+        Plotly.plot("polar_plt_" + dest, polar_traces, layout)
+    }
+
+    var data = JSON.parse('{{ data|tojson  }}')
+    var aid = data.aid
+    var bid = data.bid
+    SelectElement("dataset_a_select", aid)
+    SelectElement("dataset_b_select", bid)
+
+    var a = data.a
+    var b = data.b
+    var astats = data.stats.a
+    var bstats = data.stats.b
+
+    var stats = {
+        "a": {
+            "mean": null,
+            "median": null,
+            "min": null,
+            "max": null
+        },
+        "b": {
+            "mean": null,
+            "median": null,
+            "min": null,
+            "max": null
+        }
+    }
+
+    plot(a, "a", astats)
+    plot(b, "b", bstats)
+
+    function plot(data, dest, statistics) {
+        var vvv = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+        var vvr = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+        var vrr = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+        var rrr = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+        var rvr = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+        var rrv = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+        var vrv = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+        var rvv = {
+            'ms': [],
+            'card': [],
+            'text': [],
+            'cat': []
+        }
+
+        means = {}
+        for (var i = 0; i < data.length; i++) {
+            if (data[i]['category'] == "<v,v,v>") {
+                j = vvv.ms.length
+                vvv.ms[j] = data[i]['ms']
+                vvv.card[j] = data[i]['total_items']
+                vvv.text[j] = data[i]['pattern']
+                vvv.cat[j] = data[i]['category']
+            }
+            else if (data[i]['category'] == "<v,v,r>") {
+                j = vvr.ms.length
+                vvr.ms[j] = data[i]['ms']
+                vvr.card[j] = data[i]['total_items']
+                vvr.text[j] = data[i]['pattern']
+                vvr.cat[j] = data[i]['category']
+            }
+            else if (data[i]['category'] == "<v,r,r>") {
+                j = vrr.ms.length
+                vrr.ms[j] = data[i]['ms']
+                vrr.card[j] = data[i]['total_items']
+                vrr.text[j] = data[i]['pattern']
+                vrr.cat[j] = data[i]['category']
+            }
+            else if (data[i]['category'] == "<r,r,r>") {
+                j = rrr.ms.length
+                rrr.ms[j] = data[i]['ms']
+                rrr.card[j] = data[i]['total_items']
+                rrr.text[j] = data[i]['pattern']
+                rrr.cat[j] = data[i]['category']
+            }
+            else if (data[i]['category'] == "<r,v,r>") {
+                j = rvr.ms.length
+                rvr.ms[j] = data[i]['ms']
+                rvr.card[j] = data[i]['total_items']
+                rvr.text[j] = data[i]['pattern']
+                rvr.cat[j] = data[i]['category']
+            }
+            else if (data[i]['category'] == "<r,r,v>") {
+                j = rrv.ms.length
+                rrv.ms[j] = data[i]['ms']
+                rrv.card[j] = data[i]['total_items']
+                rrv.text[j] = data[i]['pattern']
+                rrv.cat[j] = data[i]['category']
+            }
+            else if (data[i]['category'] == "<v,r,v>") {
+                j = vrv.ms.length
+                vrv.ms[j] = data[i]['ms']
+                vrv.card[j] = data[i]['total_items']
+                vrv.text[j] = data[i]['pattern']
+                vrv.cat[j] = data[i]['category']
+            }
+            else if (data[i]['category'] == "<r,v,v>") {
+                j = rvv.ms.length
+                rvv.ms[j] = data[i]['ms']
+                rvv.card[j] = data[i]['total_items']
+                rvv.text[j] = data[i]['pattern']
+                rvv.cat[j] = data[i]['category']
+            }
+        }
+        all_data = [rrr, rrv, rvr, rvv, vrr, vrv, vvr, vvv]
+
+        means = {}
+        medians = {}
+        maxs = {}
+        mins = {}
+        var scttr_traces = []
+        var boxplot_traces = []
+        for (var i = 0; i < all_data.length; i++) {
+            var scttr_trace = {
+                x: all_data[i]['card'],
+                y: all_data[i]['ms'],
+                text: all_data[i]['text'],
+                name: all_data[i]['cat'][0],
+                mode: 'markers',
+                type: 'scatter'
+
+            };
+
+            var bp_trace = {
+                y: all_data[i]['ms'],
+                name: all_data[i]['cat'][0],
+                type: 'box'
+            };
+
+            scttr_traces[i] = scttr_trace
+            boxplot_traces[i] = bp_trace
+            means[all_data[i]['cat'][0]] = mean(all_data[i]['ms'])
+            maxs[all_data[i]['cat'][0]] = max(all_data[i]['ms'])
+            mins[all_data[i]['cat'][0]] = min(all_data[i]['ms'])
+            medians[all_data[i]['cat'][0]] = median(all_data[i]['ms'])
+        }
+
+        stats[dest]['mean'] = means
+        stats[dest]['median'] = medians
+        stats[dest]['max'] = maxs
+        stats[dest]['min'] = mins
+        console.log(stats)
+        var bp_layout = {
+            yaxis: {
+                title: "Response time [microsenconds]",
+                type: 'log',
+                autorange: true
+            },
+            xaxis: {
+                title: "Pattern type",
+                autorange: true
+            },
+            title: "Response time by pattern type"
+        };
+
+        var scttr_layout = {
+            yaxis: {
+                title: "Response time [microsenconds]",
+                type: 'log',
+                autorange: true
+            },
+            xaxis: {
+                title: "Answer Cardinality",
+                type: 'log',
+                autorange: true
+            },
+            title: "Response time by answer cardinality"
+        };
+
+
+        Plotly.newPlot('boxplot_plt_' + dest, boxplot_traces, bp_layout);
+        Plotly.newPlot('scatter_plt_' + dest, scttr_traces, scttr_layout);
+
+        var values = Object.values(means)
+        var keys = Object.keys(means)
+
+        plot_radar(keys, values, dest, true, "mean")
+        //console.log(data)
+        delete statistics['pattern_count'];
+
+        var bar_data = [
+            {
+                x: Object.keys(statistics),
+                y: Object.values(statistics),
+                type: 'bar',
+                marker: {
+                    color: ['green', 'red', 'blue']
+                }
+            }
+        ];
+
+        Plotly.newPlot('barplot_plt_' + dest, bar_data);
+    }
+
+    function change_select() {
+        var e = document.getElementById("dataset_a_select");
+        var selected_a = e.options[e.selectedIndex].value;
+        var e = document.getElementById("dataset_b_select");
+        var selected_b = e.options[e.selectedIndex].value;
+        //var  selected_a = document.getElementById("dataset_a_select").val();
+        //var  selected_b = document.getElementById("dataset_b_select").val();
+        console.log(selected_a)
+        console.log(selected_b)
+        if (selected_a != "" && selected_b != "") {
+            window.location = "/result/visualize/" + selected_a + "/compare/" + selected_b
+        }
+    }
+
+    function SelectElement(id, valueToSelect) {
+        var element = document.getElementById(id);
+        element.value = valueToSelect;
+    }
+
+</script>
+{% endblock %}
+
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12"><h1>Compare Results</h1></div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <p>This page allows for an A/B-type comparison of profiling results. Please use the dropdown menues to select two available results.
+            Once two results have been selected, the visualization are presented to the user.
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6"><h2>Result A</h2></div>
+    <div class="col-md-6"><h2>Result B</h2></div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <select id="dataset_a_select" onchange="change_select()">
+            {% for meta in data.available %}
+            {% if 'Example' in meta.id %}
+            <option value="{{meta.id}}">{{ meta.id }}</option>
+            {% else %}
+            <option value="{{meta.id}}">{{ meta.uri }}: {{ meta.sample_size }}; {{ meta.backend }}; {{ meta.environment
+                }}
+            </option>
+            {% endif %}
+            {% endfor %}
+        </select>
+        <div class="spacer15"></div>
+        <ul>
+            <li>ID: {{ data.meta.a.id}}</li>
+            <li>URI: {{ data.meta.a.uri}}</li>
+            <li>Sample size: {{ data.meta.a.sample_size}}</li>
+            <li>Backend-Type: {{ data.meta.a.backend}}</li>
+            <li>Server: {{ data.meta.a.environment}}</li>
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <select id="dataset_b_select" onchange="change_select()">
+            {% for meta in data.available %}
+            {% if 'Example' in meta.id %}
+            <option value="{{meta.id}}">{{ meta.id }}</option>
+            {% else %}
+            <option value="{{meta.id}}">{{ meta.uri }}: {{ meta.sample_size }}; {{ meta.backend }}; {{ meta.environment
+                }}
+            </option>
+            {% endif %}
+            {% endfor %}
+        </select>
+        <div class="spacer15"></div>
+        <ul>
+            <li>ID: {{ data.meta.b.id}}</li>
+            <li>URI: {{ data.meta.b.uri}}</li>
+            <li>Sample size: {{ data.meta.b.sample_size}}</li>
+            <li>Backend-Type: {{ data.meta.b.backend}}</li>
+            <li>Server: {{ data.meta.b.environment}}</li>
+        </ul>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12"><h2>Response Time Evaluation</h2></div>
+</div>
+<div class="row">
+    <div class="col-md-5"><h4>Pattern type</h4></div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div id="boxplot_plt_a"></div>
+    </div>
+    <div class="col-md-6">
+        <div id="boxplot_plt_b"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="row">
+        <div class="col-md-6">
+            <select id="radar_stat_a" onchange="change_select_stat('a')">
+                <option value="mean">Mean response time</option>
+                <option value="median">Median response time</option>
+                <option value="max">Maximum response time</option>
+                <option value="min">Minimum response time</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <select id="radar_stat_b" onchange="change_select_stat('b')">
+                <option value="mean">Mean response time</option>
+                <option value="median">Median response time</option>
+                <option value="max">Maximum response time</option>
+                <option value="min">Minimum response time</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div id="polar_plt_a"></div>
+        </div>
+        <div class="col-md-6">
+            <div id="polar_plt_b"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5"><h4>Answer cardinality</h4></div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div id="scatter_plt_a"></div>
+        </div>
+        <div class="col-md-6">
+            <div id="scatter_plt_b"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6"><h2>Sample Evaluation</h2></div>
+    </div>
+    <div class="row">
+        <div class="col-md-3"><h4>Number of samples</h4>
+            <p>{{ data.meta.a.sample_size}} </p></div>
+        <div class="col-md-3"><h4>Number of unique patterns</h4>
+            <p>{{ data.stats.a.pattern_count }} </p>
+        </div>
+        <div class="col-md-3"><h4>Number of samples</h4>
+            <p>{{ data.meta.b.sample_size}} </p></div>
+        <div class="col-md-3"><h4>Number of unique patterns</h4>
+            <p>{{ data.stats.b.pattern_count }} </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12"><h4>Term distribution</h4></div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div id="barplot_plt_a"></div>
+        </div>
+        <div class="col-md-6">
+            <div id="barplot_plt_b"></div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

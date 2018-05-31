@@ -1,0 +1,530 @@
+{% extends "layout.html" %}
+{% block title %} Visualization {% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+
+    function change_select_stat() {
+        var e = document.getElementById("radar_stat");
+        var seL_stat = e.options[e.selectedIndex].value;
+        console.log(seL_stat)
+
+        if (seL_stat == "mean") plot_radar(Object.keys(means), Object.values(means), seL_stat);
+        else if (seL_stat == "median") plot_radar(Object.keys(medians), Object.values(medians), seL_stat);
+        else if (seL_stat == "max") plot_radar(Object.keys(maxs), Object.values(maxs), seL_stat);
+        else if (seL_stat == "min") plot_radar(Object.keys(mins), Object.values(mins), seL_stat);
+    }
+
+    function plot_samples() {
+        var diameter = 1400,
+            radius = diameter / 2,
+            innerRadius = radius - 420;
+
+        var cluster = d3.cluster()
+            .size([360, innerRadius]);
+
+        var line = d3.radialLine()
+            .curve(d3.curveBundle.beta(0.85))
+            .radius(function (d) {
+                return d.y;
+            })
+            .angle(function (d) {
+                return d.x / 180 * Math.PI;
+            });
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", diameter)
+            .attr("height", diameter)
+            .append("g")
+            .attr("transform", "translate(" + radius + "," + radius + ")");
+
+        var link = svg.append("g").selectAll(".link"),
+            node = svg.append("g").selectAll(".node");
+
+        d3.json("links/{{ data.meta.id }}", function (error, classes) {
+            if (error) throw error;
+
+            var root = packageHierarchy(classes)
+                .sum(function (d) {
+                    return d.size;
+                });
+
+            cluster(root);
+
+            link = link
+                .data(packageImports(root.leaves()))
+                .enter().append("path")
+                .each(function (d) {
+                    d.source = d[0], d.target = d[d.length - 1];
+                })
+                .attr("class", "link")
+                .attr("d", line);
+
+            node = node
+                .data(root.leaves())
+                .enter().append("text")
+                .attr("class", "node")
+                .attr("dy", "0.31em")
+                .attr("transform", function (d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)");
+                })
+                .attr("text-anchor", function (d) {
+                    return d.x < 180 ? "start" : "end";
+                })
+                .text(function (d) {
+                    if (d.data.name == "") console.log(d.data)
+                    if (d.data.name.toString().includes("?")) {
+                        return d.data.name;
+                    }
+                    //else if (d.data.key.toString().includes("/"))
+                    return d.data.name
+                    /*else {
+                        return d.data.key
+                        //var vals = d.data.key.toString().split("/")
+                        //return vals[vals.length-1]
+                    }
+                    /*else {
+                        console.log(d.data.key)
+                        return "hello"
+                    }*
+                    //return d.data.key.split("/")[0];*/
+                })
+                .on("mouseover", mouseovered)
+                .on("mouseout", mouseouted);
+        });
+
+        function mouseovered(d) {
+            node
+                .each(function (n) {
+                    n.target = n.source = false;
+                });
+
+            link
+                .classed("link--target", function (l) {
+                    if (l.target === d) return l.source.source = true;
+                })
+                .classed("link--source", function (l) {
+                    if (l.source === d) return l.target.target = true;
+                })
+                .filter(function (l) {
+                    return l.target === d || l.source === d;
+                })
+                .raise();
+
+            node
+                .classed("node--target", function (n) {
+                    return n.target;
+                })
+                .classed("node--source", function (n) {
+                    return n.source;
+                });
+        }
+
+        function mouseouted(d) {
+            link
+                .classed("link--target", false)
+                .classed("link--source", false);
+
+            node
+                .classed("node--target", false)
+                .classed("node--source", false);
+        }
+
+        // Lazily construct the package hierarchy from class names.
+        function packageHierarchy(classes) {
+            var map = {};
+
+            function find(name, data) {
+                var node = map[name], i;
+                if (!node) {
+                    node = map[name] = data || {name: name, children: []};
+                    if (name.length) {
+                        try {
+                            node.parent = find(name.substring(0, i = name.lastIndexOf("/")));
+                            //node.parent = find(name);
+                            node.parent.children.push(node);
+                            node.key = name.substring(i + 1);
+                            //node.key = name
+                        }
+                        catch (err) {
+                            console.log(err)
+                        }
+                    }
+                }
+                return node;
+            }
+
+            classes.forEach(function (d) {
+                find(d.name, d);
+            });
+
+            return d3.hierarchy(map[""]);
+        }
+
+        // Return a list of imports for the given array of nodes.
+        function packageImports(nodes) {
+            var map = {},
+                imports = [];
+
+            // Compute a map from name to node.
+            nodes.forEach(function (d) {
+                map[d.data.name] = d;
+            });
+
+            // For each import, construct a link from the source to target node.
+            nodes.forEach(function (d) {
+                if (d.data.imports) d.data.imports.forEach(function (i) {
+
+                    imports.push(map[d.data.name].path(map[i.id]));
+                });
+            });
+
+            return imports;
+        }
+    }
+
+    function mean(elmt) {
+        var sum = 0;
+        for (var i = 0; i < elmt.length; i++) {
+            sum += parseInt(elmt[i], 10); //don't forget to add the base
+        }
+
+        var mean = sum / elmt.length;
+        return mean
+    }
+
+    function max(elmt) {
+        var max = 0;
+        for (var i = 0; i < elmt.length; i++) {
+            var val = parseInt(elmt[i], 10);
+            if (val > max) max = val;
+        }
+
+        return max
+    }
+
+    function min(elmt) {
+        var min = max(elmt)
+        for (var i = 0; i < elmt.length; i++) {
+            var val = parseInt(elmt[i], 10);
+            if (val < min) min = val;
+        }
+        return min
+    }
+
+    function median(values) {
+
+        values.sort(function (a, b) {
+            return a - b;
+        });
+
+        var half = Math.floor(values.length / 2);
+
+        if (values.length % 2)
+            return values[half];
+        else
+            return (values[half - 1] + values[half]) / 2.0;
+    }
+
+
+    function plot_radar(keys, values, stats, first) {
+        console.log("Plot rader with " + stats)
+        var max = 0
+        for (var i = 0; i < values.length; i++) {
+            if (values[i] > max) max = values[i];
+        }
+        stats = stats.charAt(0).toUpperCase() + stats.slice(1);
+        polar_traces = [{
+            type: 'scatterpolar',
+            r: values,
+            theta: keys,
+            name: keys,
+            fill: 'toself'
+        }]
+
+        layout = {
+            title: stats + " response times",
+            polar: {
+                radialaxis: {
+                    visible: true,
+                    range: [0, max]
+                }
+            },
+            showlegend: false
+        }
+        if (!first) Plotly.deleteTraces("polar_plt", [0]);
+
+        Plotly.plot("polar_plt", polar_traces, layout)
+    }
+
+
+    var data = JSON.parse('{{ data|tojson  }}').vals
+
+    plot_samples()
+    //console.log(data)
+    var vvv = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+    var vvr = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+    var vrr = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+    var rrr = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+    var rvr = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+    var rrv = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+    var vrv = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+    var rvv = {
+        'ms': [],
+        'card': [],
+        'text': [],
+        'cat': []
+    }
+
+    means = {}
+    for (var i = 0; i < data.length; i++) {
+        if (data[i]['category'] == "<v,v,v>") {
+            j = vvv.ms.length
+            vvv.ms[j] = data[i]['ms']
+            vvv.card[j] = data[i]['total_items']
+            vvv.text[j] = data[i]['pattern']
+            vvv.cat[j] = data[i]['category']
+        }
+        else if (data[i]['category'] == "<v,v,r>") {
+            j = vvr.ms.length
+            vvr.ms[j] = data[i]['ms']
+            vvr.card[j] = data[i]['total_items']
+            vvr.text[j] = data[i]['pattern']
+            vvr.cat[j] = data[i]['category']
+        }
+        else if (data[i]['category'] == "<v,r,r>") {
+            j = vrr.ms.length
+            vrr.ms[j] = data[i]['ms']
+            vrr.card[j] = data[i]['total_items']
+            vrr.text[j] = data[i]['pattern']
+            vrr.cat[j] = data[i]['category']
+        }
+        else if (data[i]['category'] == "<r,r,r>") {
+            j = rrr.ms.length
+            rrr.ms[j] = data[i]['ms']
+            rrr.card[j] = data[i]['total_items']
+            rrr.text[j] = data[i]['pattern']
+            rrr.cat[j] = data[i]['category']
+        }
+        else if (data[i]['category'] == "<r,v,r>") {
+            j = rvr.ms.length
+            rvr.ms[j] = data[i]['ms']
+            rvr.card[j] = data[i]['total_items']
+            rvr.text[j] = data[i]['pattern']
+            rvr.cat[j] = data[i]['category']
+        }
+        else if (data[i]['category'] == "<r,r,v>") {
+            j = rrv.ms.length
+            rrv.ms[j] = data[i]['ms']
+            rrv.card[j] = data[i]['total_items']
+            rrv.text[j] = data[i]['pattern']
+            rrv.cat[j] = data[i]['category']
+        }
+        else if (data[i]['category'] == "<v,r,v>") {
+            j = vrv.ms.length
+            vrv.ms[j] = data[i]['ms']
+            vrv.card[j] = data[i]['total_items']
+            vrv.text[j] = data[i]['pattern']
+            vrv.cat[j] = data[i]['category']
+        }
+        else if (data[i]['category'] == "<r,v,v>") {
+            j = rvv.ms.length
+            rvv.ms[j] = data[i]['ms']
+            rvv.card[j] = data[i]['total_items']
+            rvv.text[j] = data[i]['pattern']
+            rvv.cat[j] = data[i]['category']
+        }
+    }
+    all_data = [rrr, rrv, rvr, rvv, vrr, vrv, vvr, vvv]
+
+    means = {}
+    medians = {}
+    maxs = {}
+    mins = {}
+    var scttr_traces = []
+    var boxplot_traces = []
+    for (var i = 0; i < all_data.length; i++) {
+        var scttr_trace = {
+            x: all_data[i]['card'],
+            y: all_data[i]['ms'],
+            text: all_data[i]['text'],
+            name: all_data[i]['cat'][0],
+            mode: 'markers',
+            type: 'scatter'
+
+        };
+
+        var bp_trace = {
+            y: all_data[i]['ms'],
+            name: all_data[i]['cat'][0],
+            type: 'box'
+        };
+
+        scttr_traces[i] = scttr_trace
+        boxplot_traces[i] = bp_trace
+        means[all_data[i]['cat'][0]] = mean(all_data[i]['ms'])
+        medians[all_data[i]['cat'][0]] = median(all_data[i]['ms'])
+        maxs[all_data[i]['cat'][0]] = max(all_data[i]['ms'])
+        mins[all_data[i]['cat'][0]] = min(all_data[i]['ms'])
+    }
+
+    var bp_layout = {
+        yaxis: {
+            title: "Response time [microsenconds]",
+            type: 'log',
+            autorange: true
+        },
+        xaxis: {
+            title: "Pattern type",
+            autorange: true
+        },
+        title: "Response time by pattern type"
+    };
+
+    var scttr_layout = {
+        yaxis: {
+            title: "Response time [microsenconds]",
+            type: 'log',
+            autorange: true
+        },
+        xaxis: {
+            title: "Answer Cardinality",
+            type: 'log',
+            autorange: true
+        },
+        title: "Response time by answer cardinality"
+    };
+
+
+    Plotly.newPlot('boxplot_plt', boxplot_traces, bp_layout);
+    Plotly.newPlot('scatter_plt', scttr_traces, scttr_layout);
+
+    var values = Object.values(means)
+    var keys = Object.keys(means)
+
+    var stats = JSON.parse('{{ data|tojson  }}').stats
+    delete stats['pattern_count'];
+
+    var bar_data = [
+        {
+            x: Object.keys(stats),
+            y: Object.values(stats),
+            type: 'bar',
+            marker: {
+                color: ['green', 'red', 'blue']
+            }
+        }
+    ];
+
+    Plotly.newPlot('barplot_plt', bar_data);
+
+
+    plot_radar(keys, values, "mean", true)
+</script>
+{% endblock %}
+
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12"><h1>Visualization</h1></div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <ul>
+            <li>ID: {{ data.meta.id}}</li>
+            <li>URI: {{ data.meta.uri}}</li>
+            <li>Sample size: {{ data.meta.sample_size}}</li>
+            <li>Backend-Type: {{ data.meta.backend}}</li>
+            <li>Server: {{ data.meta.environment}}</li>
+        </ul>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12"><h2>Response Time Evaluation</h2></div>
+</div>
+<div class="row">
+    <div class="col-md-5"><h4>Pattern type</h4></div>
+</div>
+<div class="row">
+    <div id="boxplot_plt"></div>
+</div>
+<div class="row">
+    <div class="col-md-3">
+        <select id="radar_stat" onchange="change_select_stat()">
+            <option value="mean">Mean response time</option>
+            <option value="median">Median response time</option>
+            <option value="max">Maximum response time</option>
+            <option value="min">Minimum response time</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <div id="polar_plt"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-5"><h4>Answer cardinality</h4></div>
+</div>
+<div class="row">
+    <div id="scatter_plt"></div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-12"><h2>Sample Evaluation</h2></div>
+</div>
+<div class="row">
+    <div class="col-md-4"><h4>Number of samples</h4>
+        <p>{{ data.meta.sample_size}} </p></div>
+    <div class="col-md-4"><h4>Number of unique patterns</h4>
+        <p>{{ data.stats.pattern_count }} </p></div>
+</div>
+<div class="row">
+    <div class="col-md-2"><h4>Term distribution</h4></div>
+</div>
+<div class="row">
+    <div id="barplot_plt"></div>
+</div>
+<div class="row">
+    <div class="col-md-5"><h4>Common terms in patterns</h4></div>
+</div>
+
+
+{% endblock %}

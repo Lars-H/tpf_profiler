@@ -1,0 +1,50 @@
+[
+  {
+    "name": "DBLP",
+    "uri": "http://data.linkeddatafragments.org/dblp",
+    "backend": "HDT",
+    "environment": "remote"
+  },
+  {
+    "name": "DBpedia 2014",
+    "uri": "http://data.linkeddatafragments.org/dbpedia2014",
+    "backend": "HDT",
+    "environment": "remote"
+  },
+  {
+    "name": "GeoNames",
+    "uri": "http://data.linkeddatafragments.org/geonames",
+    "backend": "HDT",
+    "environment": "remote"
+  },
+  {
+    "name": "Wiktionary",
+    "uri": "http://data.linkeddatafragments.org/wiktionary",
+    "backend": "HDT",
+    "environment": "remote"
+  },
+  {
+    "name": "DBLP",
+    "uri": "http://localhost:3000/dblp",
+    "backend": "HDT",
+    "environment": "local"
+  },
+  {
+    "name": "DBpedia 2014",
+    "uri": "http://localhost:3000/db",
+    "backend": "HDT",
+    "environment": "local"
+  },
+  {
+    "name": "GeoNames",
+    "uri": "http://localhost:3000/geonames",
+    "backend": "HDT",
+    "environment": "local"
+  },
+  {
+    "name": "Wiktionary",
+    "uri": "http://localhost:3000/wiktionary",
+    "backend": "HDT",
+    "environment": "local"
+  }
+]

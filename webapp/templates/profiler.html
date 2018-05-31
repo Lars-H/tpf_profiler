@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block title %} {{ data.name }}{% endblock %}
+
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12"><h1>Run Profiler</h1></div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <p>On this page the TPF Profiler can be configured and executed to assess the performance of a pre-selection of
+            TPF servers.
+            There are four different knowledge graphs (DBLP, DBpedia, GeoNames and Wiktionary) available on two
+            different TPF servers.
+            One server is hosted locally and the other is publically available via the <a
+                    href="http://linkeddatafragments.org/data/">Linked Data Fragments</a> page.
+            Furthermore, the sample size to be used can be selected. For perfomance reasons, the maximum sample size is
+            100 and only one profiling process can be run at a time.
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12"><h3>TPF Profiler Configuration</h3></div>
+</div>
+<form method="post" action="run" id="run_form">
+    <div class="row">
+        <div class="col-sm-3">
+            TPF Server Selection:
+        </div>
+        <div class="col-sm-3">
+            <select form="run_form" name="uri" width="300px" , id="kg_select" onchange="update_meta()">
+                {% for tpf in data.tpfs %}
+                <option value="{{ tpf.uri }}"> {{ tpf.name }}: {{ tpf.uri }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            Backend-Type:
+        </div>
+        <div class="col-sm-3" id="backend_type">
+            {{ data.tpfs[0].backend }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            Server:
+        </div>
+        <div class="col-sm-3" id="environment">
+            {{ data.tpfs[0].environment }}
+        </div>
+    </div>
+    <div class="spacer15"></div>
+    <div class="row">
+        <div class="col-sm-3">
+            Sample Size:
+        </div>
+        <div class="col-sm-3">
+            <input type="range" min="1" max="100" value="50" class="slider" id="myRange" name="samples">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+        </div>
+        <div class="col-sm-3">
+            <p>Value: <span id="demo"></span></p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+        </div>
+        <div class="col-sm-3">
+            <button class="btn-default" type="submit">Run Profiler</button>
+        </div>
+    </div>
+</form>
+
+<script>
+
+    //var meta_info = JSON.parse('{{ data|tojson }}').values
+    var meta_info = JSON.parse('{{ data|tojson }}').tpfs
+    var slider = document.getElementById("myRange");
+    var output = document.getElementById("demo");
+    output.innerHTML = slider.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function () {
+        output.innerHTML = this.value;
+    }
+
+    function update_meta() {
+        var e = document.getElementById("kg_select");
+        var selected_a = e.options[e.selectedIndex].value;
+        for (var i = 0; i < meta_info.length; i++) {
+            if (selected_a == meta_info[i].uri) {
+                document.getElementById("backend_type").innerHTML = meta_info[i].backend
+                document.getElementById("environment").innerHTML = meta_info[i].environment
+            }
+        }
+
+    }
+
+</script>
+
+{% endblock %}

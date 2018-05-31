@@ -1,0 +1,165 @@
+.spacer5 {
+    height: 5px;
+}
+
+.spacer15 {
+    height: 15px;
+}
+
+.spacer50 {
+    height: 50px;
+}
+
+/* Style the tab */
+.tab {
+    float: left;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    width: 30%;
+    height: 300px;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+    display: block;
+    background-color: inherit;
+    color: black;
+    padding: 22px 16px;
+    width: 100%;
+    border: none;
+    outline: none;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+    background-color: #ddd;
+}
+
+/* Create an active/current "tab button" class */
+.tab button.active {
+    background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+    float: left;
+    padding: 0px 12px;
+    border: 1px solid #ccc;
+    width: 70%;
+    border-left: none;
+    height: 300px;
+}
+
+.node {
+    font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+    fill: #bbb;
+}
+
+.node:hover {
+    fill: #000;
+}
+
+.link {
+    stroke: steelblue;
+    stroke-opacity: 0.4;
+    fill: none;
+    pointer-events: none;
+}
+
+.node:hover,
+.node--source,
+.node--target {
+    font-weight: 700;
+}
+
+.node--source {
+    fill: #2ca02c;
+}
+
+.node--target {
+    fill: #d62728;
+}
+
+.link--source,
+.link--target {
+    stroke-opacity: 1;
+    stroke-width: 2px;
+}
+
+.link--source {
+    stroke: #d62728;
+}
+
+.link--target {
+    stroke: #d62728;
+}
+
+/*body{margin:40px;}*/
+
+.stepwizard-step p {
+    margin-top: 10px;
+}
+
+.process-row {
+    display: table-row;
+}
+
+.process {
+    display: table;
+    width: 80%;
+    position: relative;
+}
+
+.process-step button[disabled] {
+    opacity: 1 !important;
+    filter: alpha(opacity=100) !important;
+}
+
+.process-row:before {
+    top: 150px;
+    bottom: 0;
+    position: absolute;
+    content: " ";
+    width: 100%;
+    height: 1px;
+    background-color: #ccc;
+    z-order: 0;
+
+}
+
+.process-step {
+    display: table-cell;
+    text-align: center;
+    position: relative;
+}
+
+.process-step p {
+    margin-top:10px;
+
+}
+
+.btn-circle {
+  width: 250px;
+  height: 250px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 1.428571429;
+  border-radius: 15px;
+    color: #333333;
+    background-color: #cccccc;
+}
+
+.btn-circle-2 {
+  width: 300px;
+  height: 300px;
+  text-align: center;
+  padding: -60px 0;
+  font-size: 12px;
+  line-height: 1.428571429;
+
+  border-radius: 25px;
+}

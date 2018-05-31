@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% block title %} About {% endblock %}
+
+
+{% block page_content %}
+<div class="row">
+    <div class="col-md-8"><h1>About</h1></div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <p>Welcome to the TPF Profiler demonstration page. The TPF Profiler allows for assessing the performance of
+            Triple Pattern Fragment (TPF) server. There are four major steps to this process:
+        <ol>
+            <li>Retrieve a sample of triple patterns from the TPF server</li>
+            <li>Generate triple patterns based on the sample</li>
+            <li>Measure the response time for all triple patterns</li>
+            <li>Analyze the response time data</li>
+        </ol>
+
+        The goal of this demo is to present the TPF Profiler by providing a guided demo of the profiling process and
+        allow user to try out the tool.
+
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8" id="gettingStarted"><h2>Getting started</h2></div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <p>In the following, you can find out how to use this demo.
+            In principal, there are two major option to choose from: You can either analyze the provided examples or you
+            can run the profiler and analyze the created results.
+        <ol>
+            <li><h4>Run the Profiler</h4></li>
+            <span>
+                To run the profiler, simply go to the <a href="/profiler">Run Profiler</a> page and select the desired settings.
+            You can choose from a selection of different Knowledge Graphs (KGs) made available via various TPF servers.
+            For this demo, we provide a locally deployed TPF server with four KGs and a remote publicly available TPF server hosted by the <a
+                    href="http://linkeddatafragments.org/">Linked Data Fragments</a> team.
+            Thereafter, the sample size of can be configured (for performance reasons, we allow for a maximum number of 100 samples).
+            Once the profiler is configured, you can start it by hitting the "Run Profiler" button. You will be redirected to a page which allows for monitoring the current status of the profiler.
+                Please note, that the profiling process might take a few minutes depending on the selected server and sample size.
+            </span>
+        <li><h4>Visualize/Download the results</h4></li>
+            <span>
+                When the profiling process is finished, you can either download the data created by the profiler (as a CSV file) or you can use the preselected visualizations of the demo to analyze the data.
+                The results of the profiling process are stored until 10pm (CEST). All available results are listed on the <a
+                    href="/results">List Results</a> page.
+                On this page, we have also provided a set of examples which are always available for analysis.
+            </span>
+        <li><h4>Analyze and compare the results</h4></li>
+            <span>
+                In this demo, we provide a selection of visualizations to analyze both the repsonse time of the results as well as the samples and triple patterns created by the profiler and used for the performance measurment.
+                The visulizations can be accessed directly after the profiling process is completed using the "Visualize Results" button or via the <a href="/results">List Results</a> page on which all available results are provided.
+                Furthermore, the demo allows for an A/B comparision of two selected results on a single page, which facilitates the comparison of the available results.
+                The comparisons are available via the <a href="/results/visualize/compare">Compare Results</a> page. On this page two dropdown menus allow for selecting the desired results from all available results.
+            </span>
+        </ol>
+        Please note that running the profiler and loading the results for visualization might take some time.
+
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8" id="code"><h2>Get the code</h2></div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <p> The source code of the TPF Profiler is open-source and available on our <a
+                href="https://github.com/Lars-H/tpf_profiler">Github page</a>.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8" id="contact"><h2>Contact</h2></div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <h4>Lars Heling</h4>
+        Institute AIFB <br>
+        Karlsruhe Institute of Technology  <br>
+        heling[]kit.edu
+    </div>
+</div>
+<div class="spacer15"></div>
+<div class="row">
+    <div class="col-md-8">
+        <h4>Maribel Acosta</h4>
+        Institute AIFB <br>
+        Karlsruhe Institute of Technology  <br>
+        maribel.acosta[]kit.edu
+    </div>
+</div>
+<div class="spacer15"></div>
+<div class="row">
+    <div class="container-fluid">
+    <img class="center-block " src="{{ url_for('static', filename='logo_kit.png') }}" align="left" height="100px" width="auto">
+</div>
+
+{% endblock %}
