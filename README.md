@@ -1,4 +1,5 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1211621.svg)](https://doi.org/10.5281/zenodo.1211621)
+![tee pee](http://km.aifb.kit.edu/services/teepee/static/logo_sm.png)
 
 # Triple Pattern Fragment Profiler
 
