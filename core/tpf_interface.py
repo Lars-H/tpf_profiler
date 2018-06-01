@@ -96,8 +96,13 @@ def triples_from_graph(graph, namespaces):
                 continue
             elif predicate == '@type':
                 objs = result[predicate]
-                triples.extend(
-                    eval(subject, URI('rdf:type', namespaces=namespaces), objs, namespaces))
+                if type(objs) == list:
+                    for obj in objs:
+                        triples.extend(
+                            eval(subject, URI('rdf:type', namespaces=namespaces), {"@id" : obj}, namespaces))
+                else:
+                    triples.extend(
+                        eval(subject, URI('rdf:type', namespaces=namespaces), {"@id": objs}, namespaces))
             else:
                 objs = result[predicate]
                 triples.extend(

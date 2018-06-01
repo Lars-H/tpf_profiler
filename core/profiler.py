@@ -180,6 +180,11 @@ class Profiler(object):
                 triples.update(get_random_triples(result, self.samples_per_page))
             else:
                 logger.exception("Could not get page {0}.".format(page))
+                # Assuming expensive pagination for SPARQL based TPF server
+                # Thus reducing the max page number
+                max_pages = page
+                logger.info("Reducing page size sample to the first {0} pages.".format(max_pages))
+
 
         logger.info("Samples generated from TPF: " + str(len(triples)))
         return triples
