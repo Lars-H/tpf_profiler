@@ -16,7 +16,6 @@ app = Flask(__name__)
 app.secret_key = str(hash(dt.datetime.now()))
 bootstrap = Bootstrap(app)
 app.wsgi_app = ReverseProxied(app.wsgi_app, script_name='/services/teepee/')
-
 processes = {}
 
 file_path = os.path.dirname(os.path.realpath(__file__))
@@ -34,10 +33,13 @@ with open(ns_file) as f:
 def index():
     return render_template("index.html", data={"name": "TPF Profiler"})
 
-
 @app.route("/profiler", methods=["GET"])
 def profiler():
     return render_template("profiler.html", data={"name": "TPF Profiler", "tpfs": tpf_meta})
+
+@app.route("/config/namespaces", methods=["GET"])
+def namespaces():
+    return jsonify(namesspaces)
 
 @app.route("/about", methods=["GET"])
 def about():
@@ -52,7 +54,7 @@ def run():
     log.info("Currently running processes: {0}".format(count))
     if count >= 1:
         flash("Profiler currently running.")
-        return redirect(url_for("index"))
+        return redirect(url_for("profiler"))
 
     try:
         log.info(request.args.keys())
@@ -247,7 +249,7 @@ def kill_p(id):
     try:
         processes[str(id)].stop()
         flash("Stopped job: {0}".format(str(id)))
-        return redirect(url_for("index"))
+        return redirect(url_for("profiler"))
 
     except Exception as e:
         log.exception(e)

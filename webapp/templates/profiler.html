@@ -6,6 +6,10 @@
 <div class="row">
     <div class="col-lg-12"><h1>Run Profiler</h1></div>
 </div>
+<div class="container-fluid">
+    <img class="center-block " src="{{ url_for('static', filename='logo_sm.png') }}" align="left" height="180px"
+         width="auto">
+</div>
 <div class="row">
     <div class="col-lg-12">
         <p>On this page the TPF Profiler can be configured and executed to assess the performance of a pre-selection of
@@ -41,6 +45,14 @@
         </div>
         <div class="col-sm-3" id="backend_type">
             {{ data.tpfs[0].backend }}
+        </div>
+    </div>
+        <div class="row">
+        <div class="col-sm-3">
+            Page size:
+        </div>
+        <div class="col-sm-3" id="backend_type">
+            {{ data.tpfs[0].pagesize }}
         </div>
     </div>
     <div class="row">

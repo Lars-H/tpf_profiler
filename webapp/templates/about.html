@@ -3,6 +3,12 @@
 
 
 {% block page_content %}
+<div class="container-fluid">
+    <img class="center-block " src="{{ url_for('static', filename='logo_tp_sm.png') }}" align="left" height="180px"
+         width="auto">
+    <img class="center-block " src="{{ url_for('static', filename='logo_sm.png') }}" align="left" height="180px"
+         width="auto">
+</div>
 <div class="row">
     <div class="col-md-8"><h1>About</h1></div>
 </div>
@@ -42,17 +48,18 @@
             Once the profiler is configured, you can start it by hitting the "Run Profiler" button. You will be redirected to a page which allows for monitoring the current status of the profiler.
                 Please note, that the profiling process might take a few minutes depending on the selected server and sample size.
             </span>
-        <li><h4>Visualize/Download the results</h4></li>
+            <li><h4>Visualize/Download the results</h4></li>
             <span>
                 When the profiling process is finished, you can either download the data created by the profiler (as a CSV file) or you can use the preselected visualizations of the demo to analyze the data.
                 The results of the profiling process are stored until 10pm (CEST). All available results are listed on the <a
                     href="/results">List Results</a> page.
                 On this page, we have also provided a set of examples which are always available for analysis.
             </span>
-        <li><h4>Analyze and compare the results</h4></li>
+            <li><h4>Analyze and compare the results</h4></li>
             <span>
                 In this demo, we provide a selection of visualizations to analyze both the repsonse time of the results as well as the samples and triple patterns created by the profiler and used for the performance measurment.
-                The visulizations can be accessed directly after the profiling process is completed using the "Visualize Results" button or via the <a href="/results">List Results</a> page on which all available results are provided.
+                The visulizations can be accessed directly after the profiling process is completed using the "Visualize Results" button or via the <a
+                    href="/results">List Results</a> page on which all available results are provided.
                 Furthermore, the demo allows for an A/B comparision of two selected results on a single page, which facilitates the comparison of the available results.
                 The comparisons are available via the <a href="/results/visualize/compare">Compare Results</a> page. On this page two dropdown menus allow for selecting the desired results from all available results.
             </span>
@@ -67,7 +74,7 @@
 </div>
 <div class="row">
     <div class="col-md-8">
-        <p> The source code of the TPF Profiler is open-source and available on our <a
+        <p> The source code of teepee and the TPF Profiler is open-source and available on our <a
                 href="https://github.com/Lars-H/tpf_profiler">Github page</a>.
         </p>
     </div>
@@ -80,7 +87,7 @@
     <div class="col-md-8">
         <h4>Lars Heling</h4>
         Institute AIFB <br>
-        Karlsruhe Institute of Technology  <br>
+        Karlsruhe Institute of Technology <br>
         heling[]kit.edu
     </div>
 </div>
@@ -89,14 +96,16 @@
     <div class="col-md-8">
         <h4>Maribel Acosta</h4>
         Institute AIFB <br>
-        Karlsruhe Institute of Technology  <br>
+        Karlsruhe Institute of Technology <br>
         maribel.acosta[]kit.edu
     </div>
 </div>
 <div class="spacer15"></div>
 <div class="row">
     <div class="container-fluid">
-    <img class="center-block " src="{{ url_for('static', filename='logo_kit.png') }}" align="left" height="100px" width="auto">
+        <img class="center-block " src="{{ url_for('static', filename='logo_kit.png') }}" align="left" height="100px"
+             width="auto">
+    </div>
 </div>
 
 {% endblock %}
