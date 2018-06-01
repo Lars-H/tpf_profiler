@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %} Home {% endblock %}
+{% block title %} teepee {% endblock %}
 
 
 {% block page_content %}
@@ -8,7 +8,7 @@
 
 <div class="row">
 <img class="center-block" src="{{ url_for('static', filename='logo_tp_sm.png') }}" align="left" height="100px">
-<h1>teepee -  A TPF Profiler Visualization Tool</h1>
+    <h1>   teepee - </br>    A Triple Pattern Fragment  Profiler Visualization Tool</h1>
 
 </div>
 <div class="spacer50"></div>
@@ -16,7 +16,7 @@
 
 
 </div>
-<div class="process">
+<div class="process " align="centerr">
     <div class="process-row">
         <!--div class="process-step">
             <button type="button" class="btn btn-default btn-circle-2" disabled><img class="img-responsive center-block"
@@ -31,7 +31,7 @@
         <div class="process-step">
             <button type="button" class="btn btn-default btn-circle" onclick="window.location.href='/services/teepee/results'"><i
                     class="fas fa-chart-bar fa-10x"></i></button>
-            <h4>Visualize Results</h4>
+            <h4>View Results</h4>
         </div>
         <div class="process-step">
             <button type="button" class="btn btn-default btn-circle"
@@ -40,14 +40,7 @@
             <h4>Compare Results</h4>
         </div>
     </div>
-<div class="spacer15"></div>
-<div class="spacer15"></div>
-<div class="spacer15"></div>
-<div class="spacer15"></div>
 </div>
-<!--a href="https://github.com/Lars-H/tpf_profiler"><i
-            class="fab fa-github-square fa-4x"></i></a></div>
-</div-->
 
 
 {% endblock %}

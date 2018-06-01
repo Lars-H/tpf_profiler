@@ -35,8 +35,8 @@
             <!--li><a href="/services/teepee/"><img src="{{ url_for('static', filename='logo_txt_sm1.png') }}"  height="40px"></a></li-->
             <li><a href="/services/teepee/">teepee</a></li>
 
-            <li><a href="/services/teepee/profiler">Run Profiler</a></li>
-            <li><a href="/services/teepee/results">List Results</a></li>
+            <li><a href="/services/teepee/profiler">TPF Profiler</a></li>
+            <li><a href="/services/teepee/results">View Results</a></li>
             <li><a href="/services/teepee/results/visualize/compare">Compare Results</a></li>
             <li><a href="/services/teepee/about">About</a></li>
         </ul>
@@ -49,9 +49,16 @@
 
 {% block page_content %}{% endblock %}
 </div>
-<footer class="footer">
-    <div class="container-fluid">
-    <!--img class="img-responsive center-block img-thumbnail" src="{{ url_for('static', filename='logo_kit.png') }}" align="left"-->
-</div>
+<!-- Footer -->
+<footer class="page-footer font-small blue pt-4 mt-4">
+
+  <!-- Copyright
+  <div class="footer-copyright text-center py-3">
+      <a href="https://github.com/Lars-H/tpf_profiler"><i class="fab fa-github-square fa-4x"></i></a>
+    <a href="/services/teepee/"><img src="{{ url_for('static', filename='logo_txt_sm1.png') }}"  height="40px"></a>
+  </div>
+  <!-- Copyright -->
+
 </footer>
+<!-- Footer -->
 {% endblock %}
