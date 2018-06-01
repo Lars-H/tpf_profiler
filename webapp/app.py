@@ -1,5 +1,5 @@
 import logging as log
-log.basicConfig(level=log.INFO)
+log.basicConfig(level=log.WARNING)
 from flask import Flask, render_template, request, abort, redirect, url_for, flash, jsonify, make_response
 from flask_bootstrap import Bootstrap
 from threaded_profiler import Profiler_Thread
@@ -90,7 +90,6 @@ def result(id):
             "status": status,
             "progress": p
         }
-        # log.info(data)
         return jsonify(data)
 
     else:
@@ -120,7 +119,7 @@ def data(id):
             response.mimetype = 'text/csv'
             return response
     else:
-        log.info("Could not find CSV for job {0}".format(id))
+        log.error("Could not find CSV for job {0}".format(id))
         return abort(404)
 
 
@@ -146,8 +145,24 @@ def get_flare(id):
         vals = df['pattern'].values
 
         commons = {}
+        subjects = {
+            "name" : "Subjects",
+            "values" : set()
+        }
+        predicates = {
+            "name" : "Predicates",
+            "values" : set()
+        }
+        objects = {
+            "name" : "Objects",
+            "values" : set()
+        }
         for val in vals:
             elems = val[:-1].split(" ")
+
+            subjects['values'].add(elems[0])
+            predicates['values'].add(elems[1])
+            objects['values'].add(elems[2])
 
             for elem in elems:
                 for val2 in vals:
@@ -155,8 +170,6 @@ def get_flare(id):
                     if elem in elems2:
                         if elem != " ":
                             commons.setdefault(elem, set()).update(elems2)
-
-        # log.info(commons)
         flare = []
         for elem, values in zip(commons.keys(), commons.values()):
             flare.append(
@@ -164,7 +177,11 @@ def get_flare(id):
                  "imports": [{'text': item, 'id': add_namespace(item)} for item in list(values)]
                  }
             )
-        # log.info(flare)
+        for term in [subjects, predicates, objects]:
+            flare.append(
+                {"name": term['name'] ,
+                 "imports": [{'text': item, 'id': add_namespace(item)} for item in list(term['values'])]
+                 })
         return jsonify(flare)
 
 
@@ -175,24 +192,27 @@ def stats(id):
 
 @app.route("/result/visualize/<id>/compare/<id2>", methods=["GET"])
 def compare(id, id2):
-    jsoned = {
-        "a": csvfile_to_json(id),
-        "b": csvfile_to_json(id2),
-        "meta": {
-            "a": json_to_meta(id),
-            "b": json_to_meta(id2)
-        },
-        "stats": {
-            "a": get_stats(id),
-            "b": get_stats(id2)
-        },
-        "available": get_all_meta(),
-        "aid": id,
-        "bid": id2
+    try:
+        jsoned = {
+            "a": csvfile_to_json(id),
+            "b": csvfile_to_json(id2),
+            "meta": {
+                "a": json_to_meta(id),
+                "b": json_to_meta(id2)
+            },
+            "stats": {
+                "a": get_stats(id),
+                "b": get_stats(id2)
+            },
+            "available": get_all_meta(),
+            "aid": id,
+            "bid": id2
 
-    }
-    # log.info(jsoned)
-    return render_template("comparison.html", data=jsoned)
+        }
+        return render_template("comparison.html", data=jsoned)
+    except Exception as e:
+        log.exception(e)
+        return abort(404)
 
 
 @app.route("/results/visualize/compare", methods=["GET"])
@@ -216,7 +236,6 @@ def compare_empty():
             "b": empty_stats
         },
     }
-    # log.info(jsoned)
     return render_template("comparison.html", data=jsoned)
 
 
@@ -233,11 +252,11 @@ def results():
                     meta = json.load(f)
                     results.append(meta)
 
-        # results = sorted(results, key= lambda x : x['id'])
-        results = sorted(results, key=lambda e: ({int: 1, float: 1, str: 0}.get(type(e['id']), 0), e['id']))
+        results = sorted(results, key= lambda x : int(x['id'][7:]))
+        #results = sorted(results, key=lambda e: ({int: 1, float: 1, str: 0}.get(type(e['id']), 0), e['id']))
 
     except Exception as e:
-        log.info("Exception {0}".format(e))
+        log.exception("Exception {0}".format(e))
 
     finally:
         log.info("Results: {0}".format(results))
@@ -257,17 +276,21 @@ def kill_p(id):
 
 
 def csvfile_to_json(id):
-    file_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/results/{0}.csv".format(str(id))
-    log.info("Filepath of csv file: {0}".format(file_path))
-    if os.path.isfile(file_path):
-        df = pd.read_csv(file_path)
-        df = prepare_df(df)
-        df.drop(['cached', 'study_id', 'vars', 'run', 'Unnamed: 0', 'page'], axis=1, inplace=True)
-        return df.to_dict(orient='index').values()
-    else:
-        log.info("Could not find CSV for job {0}".format(id))
-        return []
+    try:
+        file_path = os.path.dirname(os.path.realpath(__file__))
+        file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/results/{0}.csv".format(str(id))
+        log.info("Filepath of csv file: {0}".format(file_path))
+        if os.path.isfile(file_path):
+            df = pd.read_csv(file_path)
+            df = prepare_df(df)
+            df.drop(['cached', 'study_id', 'vars', 'run', 'Unnamed: 0', 'page'], axis=1, inplace=True)
+            return df.to_dict(orient='index').values()
+        else:
+            log.error("Could not find CSV for job {0}".format(id))
+            return []
+    except Exception as e:
+        log.exception("Could not load CSV file. {0}".format(e))
+        raise e
 
 
 def json_to_meta(id):
@@ -290,7 +313,7 @@ def get_all_meta(empty=False):
     results = []
     if empty:
         empty_meta = {
-            "id": "0",
+            "id": "000000000000000",
             "uri": "-",
             "sample_size": "-",
             "backend": "-",
@@ -304,8 +327,12 @@ def get_all_meta(empty=False):
                 with open(meta_path + meta_file) as f:
                     meta = json.load(f)
                     results.append(meta)
+    except Exception as e:
+        log.exception(e)
+        raise e
+
     finally:
-        results = sorted(results, key=lambda x: x['id'])
+        results = sorted(results, key=lambda x: int(x['id'][7:]))
         return results
 
 
@@ -361,9 +388,9 @@ def get_stats(id):
             objects.add(elems[2])
 
         stats = {
-            "Distinct subjects": len(subjects),
-            "Distinct predicates": len(predicates),
-            "Distinct objects": len(objects),
+            "Distinct subjects": len(subjects) - 1,
+            "Distinct predicates": len(predicates) - 1,
+            "Distinct objects": len(objects) - 1 ,
             "pattern_count": len(vals)
         }
         return stats

@@ -1,7 +1,6 @@
 import logging as log
 logger = log.getLogger(__name__)
 logger.setLevel(log.WARNING)
-import pandas as pd
 import datetime as dt
 import threading
 import os
@@ -52,6 +51,7 @@ class Profiler_Thread(threading.Thread):
             "timestamp" : self._execution_time,
             "uri" : self._uri,
             "sample_size" : self._sample_size,
+            "pagesize" : self._meta['pagesize'],
             "backend" : self._meta['backend'],
             "environment" : self._meta['environment']
         }

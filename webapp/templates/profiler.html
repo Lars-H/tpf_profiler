@@ -51,7 +51,7 @@
         <div class="col-sm-3">
             Page size:
         </div>
-        <div class="col-sm-3" id="backend_type">
+        <div class="col-sm-3" id="pagesize">
             {{ data.tpfs[0].pagesize }}
         </div>
     </div>
@@ -108,6 +108,7 @@
             if (selected_a == meta_info[i].uri) {
                 document.getElementById("backend_type").innerHTML = meta_info[i].backend
                 document.getElementById("environment").innerHTML = meta_info[i].environment
+                document.getElementById("pagesize").innerHTML = meta_info[i].pagesize
             }
         }
 

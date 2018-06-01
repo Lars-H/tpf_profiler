@@ -54,5 +54,33 @@
     "backend": "HDT",
     "pagesize": "100",
     "environment": "local"
+  },
+    {
+    "name": "DBLP",
+    "uri": "http://localhost:3030/dblp",
+    "backend": "HDT",
+    "pagesize": "50",
+    "environment": "local"
+  },
+  {
+    "name": "DBpedia 2014",
+    "uri": "http://localhost:3030/db",
+    "backend": "HDT",
+    "pagesize": "50",
+    "environment": "local"
+  },
+  {
+    "name": "GeoNames",
+    "uri": "http://localhost:3030/geonames",
+    "backend": "HDT",
+    "pagesize": "50",
+    "environment": "local"
+  },
+  {
+    "name": "Wiktionary",
+    "uri": "http://localhost:3030/wiktionary",
+    "backend": "HDT",
+    "pagesize": "50",
+    "environment": "local"
   }
 ]

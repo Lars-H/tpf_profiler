@@ -453,8 +453,21 @@
             }
         }
     ];
+    var bar_layout = {
+        yaxis: {
+            title: "Count",
+            autorange: true
+        },
+        xaxis: {
+            title: "Term",
+            autorange: true
+        },
+        //title: "Term distribution",
+        height : 350,
+        width: 300
+    }
 
-    Plotly.newPlot('barplot_plt', bar_data);
+    Plotly.newPlot('barplot_plt', bar_data, bar_layout);
 
 
     plot_radar(keys, values, "mean", true)
@@ -479,7 +492,7 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-lg-12"><h2>Response Time Evaluation</h2></div>
+    <div class="col-lg-12"><h2>Response Time Visualization</h2></div>
 </div>
 <div class="row">
     <div class="col-md-5"><h4>Pattern type</h4></div>
@@ -511,19 +524,19 @@
 
 
 <div class="row">
-    <div class="col-md-12"><h2>Sample Evaluation</h2></div>
+    <div class="col-md-12"><h2>Sample Visualization</h2></div>
 </div>
 <div class="row">
-    <div class="col-md-4"><h4>Number of samples</h4>
-        <p>{{ data.meta.sample_size}} </p></div>
-    <div class="col-md-4"><h4>Number of unique patterns</h4>
-        <p>{{ data.stats.pattern_count }} </p></div>
+    <div class="col-md-4"><h4>Number of samples</h4></div>
+    <div class="col-md-4"><h4>Number of unique patterns</h4></div>
+    <div class="col-md-4"><h4>Term distribution</h4></div>
 </div>
 <div class="row">
-    <div class="col-md-2"><h4>Term distribution</h4></div>
-</div>
-<div class="row">
-    <div id="barplot_plt"></div>
+    <div class="col-md-4"><p>{{ data.meta.sample_size}} </p></div>
+    <div class="col-md-4"><p>{{ data.stats.pattern_count }} </p></div>
+    <div class="col-md-4">
+        <div id="barplot_plt"></div>
+    </div>
 </div>
 <div class="row">
     <div class="col-md-5"><h4>Common terms in patterns</h4></div>
