@@ -43,5 +43,4 @@ python webapp/app.py
 
 The demo is then available at `http://localhost:5055/services/teepee/`.
 
-To configure more TPF server, the `config/tpf_meta.json` can be edited and the server needs to be restarted. 
 
