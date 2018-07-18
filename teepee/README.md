@@ -30,6 +30,7 @@ For example, a configuration with a single TPF server to query the DBLP knowledg
         "environment": "remote"
       }
     ]
+}
 ```
 Please note, that the meta information about backend and pagesize need to be determined for each server by hand. 
 The maximum sample size is set to 100 in the online demo due to performance reasons. 
