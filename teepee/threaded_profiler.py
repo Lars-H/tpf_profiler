@@ -21,7 +21,7 @@ class Profiler_Thread(threading.Thread):
         self.p = None
         self._meta = meta_data
         self.path = os.path.dirname(os.path.realpath(__file__))
-        self.path = os.path.abspath(os.path.join(self.path, os.pardir)) + "/webapp/results"
+        self.path = os.path.abspath(os.path.join(self.path, os.pardir)) + "/teepee/results"
         log.info(self.path)
         super(Profiler_Thread, self).__init__()
         self._stop_event = threading.Event()

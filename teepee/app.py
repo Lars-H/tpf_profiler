@@ -19,14 +19,14 @@ app.wsgi_app = ReverseProxied(app.wsgi_app, script_name='/services/teepee/')
 processes = {}
 
 file_path = os.path.dirname(os.path.realpath(__file__))
-meta_file = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/config/demo_config.json"
+meta_file = os.path.abspath(os.path.join(file_path, os.pardir)) + "/teepee/config/demo_config.json"
 with open(meta_file) as f:
     profiler_config = json.load(f)
     tpf_meta = profiler_config['tpf_servers']
     max_sample_size = int(profiler_config['max_sample_size'])
 
 file_path = os.path.dirname(os.path.realpath(__file__))
-ns_file = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/config/namespace.json"
+ns_file = os.path.abspath(os.path.join(file_path, os.pardir)) + "/teepee/config/namespace.json"
 with open(ns_file) as f:
     namesspaces = json.load(f)
 
@@ -104,7 +104,7 @@ def result(id):
 @app.route("/result/data/<id>", methods=["GET"])
 def data(id):
     file_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/results/{0}.csv".format(str(id))
+    file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/teepee/results/{0}.csv".format(str(id))
     log.info("Filepath of csv file: {0}".format(file_path))
     if os.path.isfile(file_path):
         if "application/json" in request.headers['accept']:
@@ -140,7 +140,7 @@ def visualize(id):
 @app.route("/result/visualize/links/<id>", methods=["GET"])
 def get_flare(id):
     file_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/results/{0}.csv".format(str(id))
+    file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/teepee/results/{0}.csv".format(str(id))
     log.info("Filepath of csv file: {0}".format(file_path))
     if os.path.isfile(file_path):
         df = pd.read_csv(file_path)
@@ -245,7 +245,7 @@ def compare_empty():
 @app.route("/results", methods=["GET"])
 def results():
     meta_path = os.path.dirname(os.path.realpath(__file__))
-    meta_path = os.path.abspath(os.path.join(meta_path, os.pardir)) + "/webapp/results/meta/"
+    meta_path = os.path.abspath(os.path.join(meta_path, os.pardir)) + "/teepee/results/meta/"
 
     results = []
     try:
@@ -281,7 +281,7 @@ def kill_p(id):
 def csvfile_to_json(id):
     try:
         file_path = os.path.dirname(os.path.realpath(__file__))
-        file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/results/{0}.csv".format(str(id))
+        file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/teepee/results/{0}.csv".format(str(id))
         log.info("Filepath of csv file: {0}".format(file_path))
         if os.path.isfile(file_path):
             df = pd.read_csv(file_path)
@@ -298,7 +298,7 @@ def csvfile_to_json(id):
 
 def json_to_meta(id):
     meta_path = os.path.dirname(os.path.realpath(__file__))
-    meta_file = os.path.abspath(os.path.join(meta_path, os.pardir)) + "/webapp/results/meta/{0}.json".format(id)
+    meta_file = os.path.abspath(os.path.join(meta_path, os.pardir)) + "/teepee/results/meta/{0}.json".format(id)
 
     if meta_file.endswith(".json"):
         with open(meta_file) as f:
@@ -311,7 +311,7 @@ def json_to_meta(id):
 
 def get_all_meta(empty=False):
     meta_path = os.path.dirname(os.path.realpath(__file__))
-    meta_path = os.path.abspath(os.path.join(meta_path, os.pardir)) + "/webapp/results/meta/"
+    meta_path = os.path.abspath(os.path.join(meta_path, os.pardir)) + "/teepee/results/meta/"
 
     results = []
     if empty:
@@ -374,7 +374,7 @@ def add_namespace(item):
 
 def get_stats(id):
     file_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/results/{0}.csv".format(str(id))
+    file_path = os.path.abspath(os.path.join(file_path, os.pardir)) + "/teepee/results/{0}.csv".format(str(id))
     log.info("Filepath of csv file: {0}".format(file_path))
     if os.path.isfile(file_path):
         df = pd.read_csv(file_path)
