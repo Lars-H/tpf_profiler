@@ -17,9 +17,9 @@
             There are four different knowledge graphs (DBLP, DBpedia, GeoNames and Wiktionary) available on two
             different TPF servers.
             One server is hosted locally and the other is publically available via the <a
-                    href="http://linkeddatafragments.org/data/">Linked Data Fragments</a> page.
+                    href="http://linkeddatafragments.org/data/">Linked Data Fragments</a> page. For the local servers, each knowledge graoh is available with two different page size: 50 and 100 answers/page.
             Furthermore, the sample size to be used can be selected. For perfomance reasons, the maximum sample size is
-            100 and only one profiling process can be run at a time.
+            {{ data.max_sample_size }} and only one profiling process can be run at a time.
         </p>
     </div>
 </div>
@@ -69,7 +69,7 @@
             Sample Size:
         </div>
         <div class="col-sm-3">
-            <input type="range" min="1" max="100" value="50" class="slider" id="myRange" name="samples">
+            <input type="range" min="1" max="{{ data.max_sample_size }}" value="50" class="slider" id="myRange" name="samples">
         </div>
     </div>
     <div class="row">

@@ -15,7 +15,26 @@ In this directory, the code for "teepee" is provided. To run the server, first t
 . venv/bin/activate
 ```` 
 
-Thereafter, the server can be started using:
+The configuration file `demo_config.json` is used to setup the configuration for the available TPF servers and the maximum sample size for the TPF Profiler. 
+For example, a configuration with a single TPF server to query the DBLP knowledge graph and a maximum sample size of 100:
+```JSON
+{
+  "max_sample_size": 100,
+  "tpf_servers":
+    [
+      {
+        "name": "DBLP",
+        "uri": "http://data.linkeddatafragments.org/dblp", 
+        "backend": "HDT",
+        "pagesize": "100",
+        "environment": "remote"
+      }
+    ]
+```
+Please note, that the meta information about backend and pagesize need to be determined for each server by hand. 
+The maximum sample size is set to 100 in the online demo due to performance reasons. 
+
+After the configuration has beed adjusted, the server can be started using:
 
 ````bash
 python webapp/app.py

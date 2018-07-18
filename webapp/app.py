@@ -19,9 +19,11 @@ app.wsgi_app = ReverseProxied(app.wsgi_app, script_name='/services/teepee/')
 processes = {}
 
 file_path = os.path.dirname(os.path.realpath(__file__))
-meta_file = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/config/tpf_meta.json"
+meta_file = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/config/demo_config.json"
 with open(meta_file) as f:
-    tpf_meta = json.load(f)
+    profiler_config = json.load(f)
+    tpf_meta = profiler_config['tpf_servers']
+    max_sample_size = int(profiler_config['max_sample_size'])
 
 file_path = os.path.dirname(os.path.realpath(__file__))
 ns_file = os.path.abspath(os.path.join(file_path, os.pardir)) + "/webapp/config/namespace.json"
@@ -36,7 +38,7 @@ def index():
 
 @app.route("/profiler", methods=["GET"])
 def profiler():
-    return render_template("profiler.html", data={"name": "TPF Profiler", "tpfs": tpf_meta})
+    return render_template("profiler.html", data={"name": "TPF Profiler", "tpfs": tpf_meta, "max_sample_size" : max_sample_size})
 
 @app.route("/config/namespaces", methods=["GET"])
 def namespaces():
