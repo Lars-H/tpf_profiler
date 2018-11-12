@@ -38,7 +38,7 @@ The maximum sample size is set to 100 in the online demo due to performance reas
 After the configuration has beed adjusted, the server can be started using:
 
 ````bash
-python webapp/app.py
+python teepee/app.py
 ```` 
 
 The demo is then available at `http://localhost:5055/services/teepee/`.
